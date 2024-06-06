@@ -1,0 +1,18 @@
+# Here you can define all your data sets by using simple YAML syntax.
+#
+# Documentation for this file format can be found in "The Data Catalog"
+# Link: https://docs.kedro.org/en/stable/data/data_catalog.html
+#
+# We support interacting with a variety of data stores including local file systems, cloud, network and HDFS
+
+sales_raw_data:
+  type: pandas.CSVDataset
+  filepath: data/01_raw/Case2_Sales_data.csv
+  load_args:
+    sep: ';'
+
+market_raw_data:
+  type: pandas.CSVDataset
+  filepath: data/01_raw/Case2_Market_data.csv
+  load_args:
+    sep: ';'
