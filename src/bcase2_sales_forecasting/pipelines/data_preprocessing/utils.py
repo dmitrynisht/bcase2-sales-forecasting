@@ -1,13 +1,13 @@
 import pandas as pd
 
 
-def debug_on_success_(data: pd.DataFrame) -> None:
+def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
     
     # Print columns
     if True:
         print(data.columns)
 
-    print("pipeline succeed !")
+    print("pipeline succeed !", dummy_value)
 
     return
 

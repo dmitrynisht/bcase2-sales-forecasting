@@ -1,1 +1,1 @@
-{"market_raw_data": {"rows": 221, "columns": 48, "file_size": 165233}, "preprocessed_markets": {"rows": 218, "columns": 48}, "sales_raw_data": {"rows": 9802, "columns": 3, "file_size": 187287}, "preprocessed_sales": {"rows": 9802, "columns": 3}}
+{"sales_raw_data": {"rows": 9802, "columns": 3, "file_size": 187287}, "preprocessed_sales": {"rows": 9802, "columns": 3, "file_size": 202772}, "market_raw_data": {"rows": 221, "columns": 48, "file_size": 165233}, "preprocessed_markets": {"rows": 218, "columns": 48, "file_size": 189542}}

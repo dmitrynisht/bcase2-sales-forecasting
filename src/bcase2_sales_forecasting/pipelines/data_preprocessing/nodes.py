@@ -1,7 +1,6 @@
 import pandas as pd
 from .utils import *
 
-
 # Examples from classes
 # can be removed later
 if False:
@@ -107,12 +106,13 @@ def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     sales_data = sales_col_(sales_data)
 
     # Printing something from dataframe (usually columns)
-    debug_on_success_(sales_data)
+    dummy_value = 3
+    debug_on_success_(sales_data, dummy_value)
 
-    return sales_data
+    return sales_data, dummy_value
 
 
-def preprocess_markets(data: pd.DataFrame) -> pd.DataFrame:
+def preprocess_markets(data: pd.DataFrame, dummy_value) -> pd.DataFrame:
     """Preprocesses the market data.
 
     Args:
@@ -143,7 +143,8 @@ def preprocess_markets(data: pd.DataFrame) -> pd.DataFrame:
     market_data.drop(columns=['year', 'month'], inplace=True)
 
     # Printing something from dataframe (usually columns)
-    debug_on_success_(market_data)
+    dummy_value += 7 # checking pipelines sequence
+    debug_on_success_(market_data, dummy_value)
 
     return market_data
 

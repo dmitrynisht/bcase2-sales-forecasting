@@ -11,8 +11,20 @@ sales_raw_data:
   load_args:
     sep: ';'
 
+dummy:
+  type: pickle.PickleDataset
+  filepath: data/02_intermediate/dummy.pkl
+
 market_raw_data:
   type: pandas.ExcelDataset
   filepath: data/01_raw/Case2_Market_data.xlsx
   load_args:
     engine: openpyxl
+
+preprocessed_sales:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/clean_sales_full.csv
+
+preprocessed_markets:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/clean_markets_full.csv
