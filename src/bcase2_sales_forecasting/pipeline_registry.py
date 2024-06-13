@@ -4,6 +4,7 @@ from typing import Dict
 # from kedro.framework.project import find_pipelines
 from kedro.pipeline import Pipeline
 from bcase2_sales_forecasting.pipelines import (
+    raw_data_unit_tests as raw_data_tests,
     data_preprocessing as preprocessing
 
 #
@@ -20,10 +21,11 @@ def register_pipelines() -> Dict[str, Pipeline]:
     # pipelines["__default__"] = sum(pipelines.values())
     # return pipelines
     
-    data_preprocessing = preprocessing.create_pipeline()
-    
+    raw_data_unit_tests = raw_data_tests.create_pipeline()
+    preprocess_data = preprocessing.create_pipeline()
+
     return {
-  
-        "preprocess_data": data_preprocessing
+        "raw_data_unit_tests": raw_data_unit_tests,
+        "preprocess_data": preprocess_data
 
     }

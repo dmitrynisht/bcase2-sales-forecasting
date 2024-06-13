@@ -15,8 +15,6 @@ def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
 def sales_columns_naming_(data: pd.DataFrame) -> pd.DataFrame:
     
     # Rename columns
-    # data.rename({'ï»¿DATE':'Full_Date', 'Mapped_GCK':'GCK', 'Sales_EUR':'Sales €'}, axis=1, inplace=True)
-    # data.rename({'п»їDATE':'Full_Date', 'Mapped_GCK':'GCK', 'Sales_EUR':'Sales €'}, axis=1, inplace=True)
     data.rename({'DATE':'Full_Date', 'Mapped_GCK':'GCK', 'Sales_EUR':'Sales €'}, axis=1, inplace=True)
 
     return data
@@ -34,8 +32,6 @@ def sales_col_(data):
     
     # Format sales
     data["Sales €"] = data["Sales €"].str.replace(",", ".").astype(float)
-    # preprocessed_sales = sales_raw_data.fillna(0)
-    # preprocessed_sales = sales_raw_data
     
     return data
 
