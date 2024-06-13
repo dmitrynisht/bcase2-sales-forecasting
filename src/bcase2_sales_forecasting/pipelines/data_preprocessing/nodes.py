@@ -1,6 +1,11 @@
 import pandas as pd
+from .utils import *
 
 
+# Examples from classes
+# can be removed later
+if False:
+    
 # def _is_true(x: pd.Series) -> pd.Series:
 #     return x == "t"
 
@@ -79,6 +84,8 @@ import pandas as pd
 #     ibm = ibm.fillna(0)
 
 #     return ibm
+    pass
+
 
 def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     """Preprocesses the sales data.
@@ -90,19 +97,53 @@ def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     """
 
     sales_data = data.copy()
-
-    # Rename columns
-    sales_data.rename({'ï»¿DATE':'Full_Date', 'Mapped_GCK':'GCK', 'Sales_EUR':'Sales €'}, axis=1, inplace=True)
-
-    # Remove '#' from product group code
-    #sales_data["GCK"] = sales_data["GCK"].str.replace(r'#(\d+)', r'\1', regex=True)
+    
+    sales_data = sales_columns_naming_(sales_data)
 
     # Format data
-    sales_data['Full_Date'] = pd.to_datetime(sales_data['Full_Date'], format='%d.%m.%Y').dt.strftime('%d-%m-%Y')
+    sales_data = full_date_col_(sales_data)
 
     # Format sales
-    sales_data["Sales €"] = sales_data["Sales €"].str.replace(",", ".").astype(float)
-    # preprocessed_sales = sales_raw_data.fillna(0)
-    # preprocessed_sales = sales_raw_data
+    sales_data = sales_col_(sales_data)
+
+    # Printing something from dataframe (usually columns)
+    debug_on_success_(sales_data)
 
     return sales_data
+
+
+def preprocess_markets(data: pd.DataFrame) -> pd.DataFrame:
+    """Preprocesses the market data.
+
+    Args:
+        data: Raw markets.
+    Returns:
+        Preprocessed market data
+    """
+
+    market_data = data.copy()
+
+    market_data = market_columns_naming_(market_data)
+
+    market_data = market_data.drop(market_data.index[0]).reset_index(drop=True)
+
+    # We believed it would be easier to understand the columns with clearer names
+    market_data['Month Year'] = market_data['Month Year'].str.strip()
+
+    # Splitting the column into year and month
+    market_data[['year', 'month']] = market_data['Month Year'].str.split('m', expand=True)
+
+    # Converting year and month to datetime
+    market_data['Month Year'] = pd.to_datetime(market_data['year'] + '-' + market_data['month'], format='%Y-%m')
+
+    # Formatting datetime to Month Year
+    market_data['Month Year'] = market_data['Month Year'].dt.strftime('%b %Y')
+
+    # Dropping intermediate columns if needed
+    market_data.drop(columns=['year', 'month'], inplace=True)
+
+    # Printing something from dataframe (usually columns)
+    debug_on_success_(market_data)
+
+    return market_data
+

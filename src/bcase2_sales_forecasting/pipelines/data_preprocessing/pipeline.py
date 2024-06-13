@@ -19,6 +19,7 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs="preprocessed_markets",
                 name="preprocess_markets_node",
             ),
+
             # node(
             #     func=preprocess_shuttles,
             #     inputs="shuttles",

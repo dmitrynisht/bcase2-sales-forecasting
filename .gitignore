@@ -11,6 +11,9 @@ conf/**/*credentials*
 # ignore everything in the following folders
 data/**
 
+# ignore mlruns: ask professor, but this folder grows quickly, do I need it ?
+mlruns/**
+
 # except their sub-folders
 !data/**/
 

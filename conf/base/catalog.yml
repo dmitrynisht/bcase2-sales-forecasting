@@ -12,7 +12,7 @@ sales_raw_data:
     sep: ';'
 
 market_raw_data:
-  type: pandas.CSVDataset
-  filepath: data/01_raw/Case2_Market_data.csv
+  type: pandas.ExcelDataset
+  filepath: data/01_raw/Case2_Market_data.xlsx
   load_args:
-    sep: ';'
+    engine: openpyxl

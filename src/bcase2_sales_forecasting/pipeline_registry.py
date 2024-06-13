@@ -5,6 +5,8 @@ from typing import Dict
 from kedro.pipeline import Pipeline
 from bcase2_sales_forecasting.pipelines import (
     data_preprocessing as preprocessing
+
+#
 )
 
 
@@ -19,8 +21,9 @@ def register_pipelines() -> Dict[str, Pipeline]:
     # return pipelines
     
     data_preprocessing = preprocessing.create_pipeline()
+    
     return {
   
-        "data_preprocessing": data_preprocessing,
+        "preprocess_data": data_preprocessing
 
     }
