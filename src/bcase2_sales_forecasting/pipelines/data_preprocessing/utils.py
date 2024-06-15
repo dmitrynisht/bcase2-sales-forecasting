@@ -7,6 +7,8 @@ def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
     if True:
         print(data.columns)
 
+    # dummy_value is for checking pipelines sequence
+    dummy_value.append(dummy_value[-1] + 1) 
     print("pipeline succeed !", dummy_value)
 
     return

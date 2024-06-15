@@ -106,7 +106,7 @@ def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     sales_data = sales_col_(sales_data)
 
     # Printing something from dataframe (usually columns)
-    dummy_value = 3
+    dummy_value = [0]
     debug_on_success_(sales_data, dummy_value)
 
     return sales_data, dummy_value
@@ -142,8 +142,11 @@ def preprocess_markets(data: pd.DataFrame, dummy_value) -> pd.DataFrame:
     # Dropping intermediate columns if needed
     market_data.drop(columns=['year', 'month'], inplace=True)
 
+    # Define the list of columns and convert to float
+    market_data.iloc[:, 1:] = market_data.iloc[:, 1:].astype(float)
+
     # Printing something from dataframe (usually columns)
-    dummy_value += 7 # checking pipelines sequence
+    # dummy_value is for checking pipelines sequence
     debug_on_success_(market_data, dummy_value)
 
     return market_data
