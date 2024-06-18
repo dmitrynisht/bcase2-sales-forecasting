@@ -31,32 +31,41 @@ def build_expectation_suite(expectation_suite_name: str, feature_group: str) -> 
     expectation_suite_bank = ExpectationSuite(
         expectation_suite_name=expectation_suite_name
     )
-        
+    
+    expectation_suite_bank.add_expectation(
+        ExpectationConfiguration(
+            expectation_type="expect_table_column_count_to_equal",
+            kwargs={"value": 49},
+        )
+    )
+
     if feature_group == "market_total_features":
 
         expected_column_names = market_columns_list_()
 
-        expectation_suite_bank.add_expectation(
-            ExpectationConfiguration(
-                # expectation_type="expect_table_columns_to_match_ordered_list",
-                # kwargs={"column_list": expected_column_names},
+        # # to improve, we don't need unique values within columns
+        # expectation_suite_bank.add_expectation(
+        #     ExpectationConfiguration(
+        #         # expectation_type="expect_table_columns_to_match_ordered_list",
+        #         # kwargs={"column_list": expected_column_names},
                 
-                expectation_type="expect_column_values_to_be_unique",
-                kwargs={
-                        "column_map": {
-                            "numeric_columns": expected_column_names[0],
-                            "categorical_columns": expected_column_names[1:]
-                        }
-                }
-            )
-        )
+        #         expectation_type="expect_column_values_to_be_unique",
+        #         kwargs={
+        #                 "column_map": {
+        #                     "numeric_columns": expected_column_names[2:],
+        #                     # "categorical_columns": expected_column_names[1:]
+        #                 }
+        #         }
+        #     )
+        # )
 
-        expectation_suite_bank.add_expectation(
-            ExpectationConfiguration(
-                expectation_type="expect_table_column_count_to_equal",
-                kwargs={"value": 48},
-            )
-        )
+        # expectation_suite_bank.add_expectation(
+        #     ExpectationConfiguration(
+        #         expectation_type="expect_table_column_count_to_equal",
+        #         kwargs={"value": 49},
+        #     )
+        # )
+
         # # this intentionally left as example
         # expectation_suite_bank.add_expectation(
         #     ExpectationConfiguration(
@@ -66,36 +75,42 @@ def build_expectation_suite(expectation_suite_name: str, feature_group: str) -> 
         # )
         # Create the expectation
 
-    #     # numerical features
-    #     if feature_group == 'numerical_features':
+    # numerical features
+    if feature_group == 'market_numerical_features':
 
-    #         for i in ['age', 'duration','campaign', 'pdays', 'previous','balance']:
-    #             expectation_suite_bank.add_expectation(
-    #                 ExpectationConfiguration(
-    #                     expectation_type="expect_column_values_to_be_of_type",
-    #                     kwargs={"column": i, "type_": "int64"},
-    #                 )
-    #             )
-    #         # age
-    #         expectation_suite_bank.add_expectation(
-    #                 ExpectationConfiguration(
-    #                     expectation_type="expect_column_min_to_be_between",
-    #                     kwargs={
-    #                         "column": "age",
-    #                         "min_value": 18,
-    #                         "strict_min": False,
-    #                     },
-    #                 )
-    #             )
+        expected_column_names = market_columns_list_()[2:]
 
-    #     if feature_group == 'target':
-            
-    #         expectation_suite_bank.add_expectation(
-    #             ExpectationConfiguration(
-    #                 expectation_type="expect_column_distinct_values_to_be_in_set",
-    #                 kwargs={"column": "y", "value_set": ['yes', 'no']},
-    #             )
-    #         ) 
+        for col in expected_column_names:
+            expectation_suite_bank.add_expectation(
+                ExpectationConfiguration(
+                    expectation_type="expect_column_values_to_be_of_type",
+                    kwargs={"column": col, "type_": "float64"},
+                )
+            )
+
+        # # age
+        # expectation_suite_bank.add_expectation(
+        #         ExpectationConfiguration(
+        #             expectation_type="expect_column_min_to_be_between",
+        #             kwargs={
+        #                 "column": "age",
+        #                 "min_value": 18,
+        #                 "strict_min": False,
+        #             },
+        #         )
+        #     )
+
+        # target
+        if False:
+            # if feature_group == 'target':
+                
+            #     expectation_suite_bank.add_expectation(
+            #         ExpectationConfiguration(
+            #             expectation_type="expect_column_distinct_values_to_be_in_set",
+            #             kwargs={"column": "y", "value_set": ['yes', 'no']},
+            #         )
+            #     ) 
+            pass
         
     return expectation_suite_bank
 
@@ -139,7 +154,7 @@ def to_feature_store(
         version=feature_group_version,
         description= description,
         primary_key=["index"],
-        event_time="Month Year",
+        event_time="month_year",
         online_enabled=False,
         expectation_suite=validation_expectation_suite,
     )
@@ -216,6 +231,8 @@ def preprocess_markets(
         Preprocessed market data
     """
 
+    # actually could be removed from here because we have similar expectation
+    #   but not identical
     columns = data.columns.to_list()
     assert len(columns) == 48, "Wrong data collected"
 
@@ -234,7 +251,7 @@ def preprocess_markets(
     # Converting year and month to datetime
     market_data['Month Year'] = pd.to_datetime(market_data['year'] + '-' + market_data['month'], format='%Y-%m')
 
-    # # for feature store its better not to
+    # # for feature store its better not to do this
     # # Formatting datetime to Month Year
     # market_data['Month Year'] = market_data['Month Year'].dt.strftime('%b %Y')
 
@@ -244,42 +261,51 @@ def preprocess_markets(
     # Define the list of columns and convert to float
     market_data.iloc[:, 1:] = market_data.iloc[:, 1:].astype(float)
 
-    # print(market_data.columns)
-    # print(60*"#")
-    # print(len(market_data.columns))
-    # print(len(market_columns_list_()))
-    # print(60*"#")
-    # print([x for x in market_columns_list_() if x not in market_data.columns])
-    print(f'{30*"#"} {"preprocess_markets".upper} {30*"#"}')
     # Reset the index to convert the default index to a column
     market_data = market_data.reset_index()
-    # Optionally, rename the new column if needed
-    # market_data.rename(columns={'index': 'index'}, inplace=True)
-    # print(market_data.index.name)
-    # market_data = market_data.rename_axis('index')
-    print(60*"#")
+
+    # Set True/False whenever debug needed/or not
+    if True:
+        print_to_debug_(market_data, None)
 
     logger.info(f"The dataset contains {len(market_data.columns)} columns.")
     
-    validation_expectation_suite_market_total = build_expectation_suite("market_total_expectations","market_total_features")
+    market_numerical_features = market_data.select_dtypes(exclude=['object','string','category']).columns.tolist()
+    market_categorical_features = market_data.select_dtypes(include=['object','string','category']).columns.tolist()
 
-    market_total_features_descriptions =[]
+    validation_expectation_suite_market_total = build_expectation_suite("market_total_expectations","market_total_features")
+    validation_expectation_suite_market_numerical = build_expectation_suite("market_numerical_expectations","market_numerical_features")
+    validation_expectation_suite_market_categorical = build_expectation_suite("market_categorical_expectations","market_categorical_features")
+
+    # market_total_features_descriptions =[]
+    market_numerical_feature_descriptions =[]
+    market_categorical_feature_descriptions =[]
+    # target_feature_descriptions =[]
+
+    df_full_numeric = market_data[["index","datetime"] + market_numerical_features]
+    df_full_categorical = market_data[["index","datetime"] + market_categorical_features]
+    # df_full_target = df_full[["index","datetime"] + [parameters["target_column"]]]
 
     if parameters["to_feature_store"]:
-
-        object_fs_categorical_features = to_feature_store(
-            market_data, "market_total_features",
-            1, "Categorical Features",
-            market_total_features_descriptions,
-            validation_expectation_suite_market_total,
+        
+        object_fs_numerical_features = to_feature_store(
+            df_full_numeric, "market_numerical_features",
+            1, "Numerical Features",
+            market_numerical_feature_descriptions,
+            validation_expectation_suite_market_numerical,
             credentials["feature_store"]
         )
+
+        # object_fs_categorical_features = to_feature_store(
+        #     market_data, "market_total_features",
+        #     1, "Categorical Features",
+        #     market_total_features_descriptions,
+        #     validation_expectation_suite_market_total,
+        #     credentials["feature_store"]
+        # )
         
     # Printing something from dataframe (usually columns)
     # dummy_value is for checking pipelines sequence
-    # columns = market_data.columns.to_list()
-    # print(len(columns), columns[:5])
-    # print(market_data.iloc[:4, 0])
     debug_on_success_(market_data, dummy_value)
 
     return market_data

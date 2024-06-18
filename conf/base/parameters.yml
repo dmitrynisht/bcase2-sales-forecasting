@@ -1,2 +1,2 @@
-to_feature_store: False
+to_feature_store: True
 random_state: 2024

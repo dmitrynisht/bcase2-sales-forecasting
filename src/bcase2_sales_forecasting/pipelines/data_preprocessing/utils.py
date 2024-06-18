@@ -1,4 +1,6 @@
 import pandas as pd
+import re
+from typing import Any, Dict
 
 
 def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
@@ -12,6 +14,37 @@ def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
     print("pipeline succeed !", dummy_value)
 
     return
+
+
+def print_to_debug_(market_data: pd.DataFrame, dummy_value: Any) -> None:
+    
+    headers = market_data.columns.to_list()
+    valid_headers = market_columns_list_()
+    print(f'{30*"#"} {"first 5 columns of market_data".upper()} {30*"#"}')
+    print(headers[:5])
+    print(f'{30*"#"} {"first 5 columns of validation_columns_list_".upper()} {30*"#"}')
+    print(valid_headers[:5])
+    print(f'{30*"#"} {"last 5 columns of market_data".upper()} {30*"#"}')
+    print(headers[-5:])
+    print(f'{30*"#"} {"last 5 columns of validation_columns_list_".upper()} {30*"#"}')
+    print(valid_headers[-5:])
+    # print(f'{30*"#"} {"length of market_columns_list_()".upper()} {30*"#"}')
+    print(90*"#")
+
+    market_data = market_columns_sanitation_(market_data)
+    headers = market_data.columns.to_list()
+    print(f'{30*"#"} {"columns after sanitation".upper()} {30*"#"}')
+    print("col count:", len(headers), "valid count:", len(valid_headers))
+    print("first 5:")
+    print(headers[:5])
+    print(valid_headers[:5])
+    print("last 5:")
+    print(headers[-5:])
+    print(valid_headers[-5:])
+    print(market_data.dtypes)
+    print(90*"#")
+
+    pass
 
 
 def sales_columns_naming_(data: pd.DataFrame) -> pd.DataFrame:
@@ -41,54 +74,55 @@ def sales_col_(data):
 def market_columns_list_() -> list:
 
     columns_list = [
-        'Month Year',
-        'China Production Index M&E',
-        'China Shipments Index M&E',
-        'France Production Index M&E',
-        'France Shipments Index M&E',
-        'Germany Production Index M&E',
-        'Germany Shipments Index M&E',
-        'Italy Production Index M&E',
-        'Italy Shipments Index M&E',
-        'Japan Production Index M&E',
-        'Japan Shipments Index M&E',
-        'Switzerland Production Index M&E',
-        'Switzerland Shipments Index M&E',
-        'UK Production Index M&E',
-        'UK Shipments Index M&E',
-        'US Production Index M&E',
-        'US Shipments Index M&E',
-        'Europe Production Index M&E',
-        'Europe Shipments Index M&E',
-        'Price of Base Metals',
-        'Price of Energy',
-        'Price of Metals & Minerals',
-        'Price of Natural gas index',
-        'Price of Crude oil (AVG)',
-        'Price of Copper',
-        'United States: EUR in LCU',
-        'US Producer Prices Electrical eq.',
-        'UK Producer Prices Electrical eq.',
-        'Italy Producer Prices Electrical eq.',
-        'France Producer Prices Electrical eq.',
-        'Germany Producer Prices Electrical eq.',
-        'China Producer Prices Electrical eq.',
-        'US Production Index Machinery eq.',
-        'Global Production Index Machinery eq.',
-        'Switzerland Production Index Machinery eq.',
-        'UK Production Index Machinery eq.',
-        'Italy Production Index Machinery eq.',
-        'Japan Production Index Machinery eq.',
-        'France Production Index Machinery eq.',
-        'Germany Production Index Machinery eq.',
-        'US Production Index Electrical eq.',
-        'Global Production Index Electrical eq.',
-        'Switzerland Production Index Electrical eq.',
-        'UK Production Index Electrical eq.',
-        'Italy Production Index Electrical eq.',
-        'Japan Production Index Electrical eq.',
-        'France Production Index Electrical eq.',
-        'Germany Production Index Electrical eq.',
+        'index',
+        'month_year',
+        'china_production_index_m_e',
+        'china_shipments_index_m_e',
+        'france_production_index_m_e',
+        'france_shipments_index_m_e',
+        'germany_production_index_m_e',
+        'germany_shipments_index_m_e',
+        'italy_production_index_m_e',
+        'italy_shipments_index_m_e',
+        'japan_production_index_m_e',
+        'japan_shipments_index_m_e',
+        'switzerland_production_index_m_e',
+        'switzerland_shipments_index_m_e',
+        'uk_production_index_m_e',
+        'uk_shipments_index_m_e',
+        'us_production_index_m_e',
+        'us_shipments_index_m_e',
+        'europe_production_index_m_e',
+        'europe_shipments_index_m_e',
+        'price_of_base_metals',
+        'price_of_energy',
+        'price_of_metals___minerals',
+        'price_of_natural_gas_index',
+        'price_of_crude_oil_avg',
+        'price_of_copper',
+        'united_states__eur_in_lcu',
+        'us_producer_prices_electrical_eq',
+        'uk_producer_prices_electrical_eq',
+        'italy_producer_prices_electrical_eq',
+        'france_producer_prices_electrical_eq',
+        'germany_producer_prices_electrical_eq',
+        'china_producer_prices_electrical_eq',
+        'us_production_index_machinery_eq',
+        'global_production_index_machinery_eq',
+        'switzerland_production_index_machinery_eq',
+        'uk_production_index_machinery_eq',
+        'italy_production_index_machinery_eq',
+        'japan_production_index_machinery_eq',
+        'france_production_index_machinery_eq',
+        'germany_production_index_machinery_eq',
+        'us_production_index_electrical_eq',
+        'global_production_index_electrical_eq',
+        'switzerland_production_index_electrical_eq',
+        'uk_production_index_electrical_eq',
+        'italy_production_index_electrical_eq',
+        'japan_production_index_electrical_eq',
+        'france_production_index_electrical_eq',
+        'germany_production_index_electrical_eq',
     ]
 
     return columns_list
@@ -167,6 +201,31 @@ def market_columns_naming_(market_data: pd.DataFrame) -> pd.DataFrame:
         axis=1,
         inplace=True
     )
+
+    return market_data
+
+
+def market_columns_sanitation_(market_data: pd.DataFrame) -> pd.DataFrame:
+    """
+        error code: 270040, error msg: Illegal feature name, user msg: , the provided feature name month year is
+            invalid.
+        Legal usage:
+        Feature names can only contain lower case characters, numbers and underscores, have to start with a
+            letter and cannot be longer than 63 characters or empty
+    """
+
+    new_headers = market_data.columns
+    # For feature store seamless usasge
+    symbols_to_replace_pattern = r'[ &:]'
+    replacement_char = "_"
+    new_headers = [re.sub(symbols_to_replace_pattern, replacement_char, col) for col in new_headers]
+    symbols_to_replace_pattern = r'[().]'
+    replacement_char = ""
+    new_headers = [re.sub(symbols_to_replace_pattern, replacement_char, col) for col in new_headers]
+    
+    new_headers = [col.lower() for col in new_headers]
+
+    market_data.columns = new_headers
 
     return market_data
 
