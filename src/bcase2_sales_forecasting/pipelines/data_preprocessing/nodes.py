@@ -105,7 +105,6 @@ def to_feature_store(
     group_name: str,
     feature_group_version: int,
     description: str,
-    pk: str,
     group_description: dict,
     validation_expectation_suite: ExpectationSuite,
     credentials_input: dict
@@ -139,8 +138,8 @@ def to_feature_store(
         name=group_name,
         version=feature_group_version,
         description= description,
-        # primary_key=pk,
-        # event_time="Month Year",
+        primary_key=["index"],
+        event_time="Month Year",
         online_enabled=False,
         expectation_suite=validation_expectation_suite,
     )
@@ -235,8 +234,9 @@ def preprocess_markets(
     # Converting year and month to datetime
     market_data['Month Year'] = pd.to_datetime(market_data['year'] + '-' + market_data['month'], format='%Y-%m')
 
-    # Formatting datetime to Month Year
-    market_data['Month Year'] = market_data['Month Year'].dt.strftime('%b %Y')
+    # # for feature store its better not to
+    # # Formatting datetime to Month Year
+    # market_data['Month Year'] = market_data['Month Year'].dt.strftime('%b %Y')
 
     # Dropping intermediate columns if needed
     market_data.drop(columns=['year', 'month'], inplace=True)
@@ -250,9 +250,13 @@ def preprocess_markets(
     # print(len(market_columns_list_()))
     # print(60*"#")
     # print([x for x in market_columns_list_() if x not in market_data.columns])
-    print(60*"#")
-    print(market_data.index.name)
-    market_data = market_data.rename_axis('index')
+    print(f'{30*"#"} {"preprocess_markets".upper} {30*"#"}')
+    # Reset the index to convert the default index to a column
+    market_data = market_data.reset_index()
+    # Optionally, rename the new column if needed
+    # market_data.rename(columns={'index': 'index'}, inplace=True)
+    # print(market_data.index.name)
+    # market_data = market_data.rename_axis('index')
     print(60*"#")
 
     logger.info(f"The dataset contains {len(market_data.columns)} columns.")
@@ -266,7 +270,6 @@ def preprocess_markets(
         object_fs_categorical_features = to_feature_store(
             market_data, "market_total_features",
             1, "Categorical Features",
-            market_data.index.name,
             market_total_features_descriptions,
             validation_expectation_suite_market_total,
             credentials["feature_store"]
