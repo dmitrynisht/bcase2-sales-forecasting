@@ -9,13 +9,13 @@ def create_pipeline(**kwargs) -> Pipeline:
         [
             node(
                 func=preprocess_sales,
-                inputs="sales_raw_data",
+                inputs=["sales_raw_data", "parameters"],
                 outputs=["preprocessed_sales", "dummy"],
                 name="preprocess_sales_node",
             ),
             node(
                 func=preprocess_markets,
-                inputs=["market_raw_data", "dummy"],
+                inputs=["market_raw_data", "dummy", "parameters"],
                 outputs="preprocessed_markets",
                 name="preprocess_markets_node",
             ),

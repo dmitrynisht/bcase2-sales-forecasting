@@ -20,6 +20,7 @@ market_raw_data:
   filepath: data/01_raw/Case2_Market_data.xlsx
   load_args:
     engine: openpyxl
+    header: null
 
 preprocessed_sales:
   type: pandas.CSVDataset

@@ -1,92 +1,181 @@
+from typing import Any, Dict, Tuple
+import logging
+from pathlib import Path
+from kedro.config import OmegaConfigLoader
+from kedro.framework.project import settings
+import hopsworks
+from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import pandas as pd
 from .utils import *
 
-# Examples from classes
-# can be removed later
-if False:
+conf_path = str(Path('') / settings.CONF_SOURCE)
+conf_loader = OmegaConfigLoader(conf_source=conf_path)
+credentials = conf_loader["credentials"]
+
+
+logger = logging.getLogger(__name__)
+
     
-# def _is_true(x: pd.Series) -> pd.Series:
-#     return x == "t"
+def build_expectation_suite(expectation_suite_name: str, feature_group: str) -> ExpectationSuite:
+    """
+    Builder used to retrieve an instance of the validation expectation suite.
+    
+    Args:
+        expectation_suite_name (str): A dictionary with the feature group name and the respective version.
+        feature_group (str): Feature group used to construct the expectations.
+            
+    Returns:
+        ExpectationSuite: A dictionary containing all the expectations for this particular feature group.
+    """
+        
+    expectation_suite_bank = ExpectationSuite(
+        expectation_suite_name=expectation_suite_name
+    )
+        
+    if feature_group == "market_total_features":
+
+        expected_column_names = market_columns_list_()
+
+        expectation_suite_bank.add_expectation(
+            ExpectationConfiguration(
+                # expectation_type="expect_table_columns_to_match_ordered_list",
+                # kwargs={"column_list": expected_column_names},
+                
+                expectation_type="expect_column_values_to_be_unique",
+                kwargs={
+                        "column_map": {
+                            "numeric_columns": expected_column_names[0],
+                            "categorical_columns": expected_column_names[1:]
+                        }
+                }
+            )
+        )
+
+        expectation_suite_bank.add_expectation(
+            ExpectationConfiguration(
+                expectation_type="expect_table_column_count_to_equal",
+                kwargs={"value": 48},
+            )
+        )
+        # # this intentionally left as example
+        # expectation_suite_bank.add_expectation(
+        #     ExpectationConfiguration(
+        #         expectation_type="expect_column_distinct_values_to_be_in_set",
+        #         kwargs={"column": "marital", "value_set": ['divorced', 'married','single']},
+        #     )
+        # )
+        # Create the expectation
+
+    #     # numerical features
+    #     if feature_group == 'numerical_features':
+
+    #         for i in ['age', 'duration','campaign', 'pdays', 'previous','balance']:
+    #             expectation_suite_bank.add_expectation(
+    #                 ExpectationConfiguration(
+    #                     expectation_type="expect_column_values_to_be_of_type",
+    #                     kwargs={"column": i, "type_": "int64"},
+    #                 )
+    #             )
+    #         # age
+    #         expectation_suite_bank.add_expectation(
+    #                 ExpectationConfiguration(
+    #                     expectation_type="expect_column_min_to_be_between",
+    #                     kwargs={
+    #                         "column": "age",
+    #                         "min_value": 18,
+    #                         "strict_min": False,
+    #                     },
+    #                 )
+    #             )
+
+    #     if feature_group == 'target':
+            
+    #         expectation_suite_bank.add_expectation(
+    #             ExpectationConfiguration(
+    #                 expectation_type="expect_column_distinct_values_to_be_in_set",
+    #                 kwargs={"column": "y", "value_set": ['yes', 'no']},
+    #             )
+    #         ) 
+        
+    return expectation_suite_bank
 
 
-# def _parse_percentage(x: pd.Series) -> pd.Series:
-#     x = x.str.replace("%", "")
-#     x = x.astype(float) / 100
-#     return x
+def to_feature_store(
+    data: pd.DataFrame,
+    group_name: str,
+    feature_group_version: int,
+    description: str,
+    pk: str,
+    group_description: dict,
+    validation_expectation_suite: ExpectationSuite,
+    credentials_input: dict
+):
+    """
+    This function takes in a pandas DataFrame and a validation expectation suite,
+    performs validation on the data using the suite, and then saves the data to a
+    feature store in the feature store.
+
+    Args:
+        data (pd.DataFrame): Dataframe with the data to be stored
+        group_name (str): Name of the feature group.
+        feature_group_version (int): Version of the feature group.
+        description (str): Description for the feature group.
+        group_description (dict): Description of each feature of the feature group. 
+        validation_expectation_suite (ExpectationSuite): group of expectations to check data.
+        SETTINGS (dict): Dictionary with the settings definitions to connect to the project.
+        
+    Returns:
+        A dictionary with the feature view version, feature view name and training dataset feature version.
+    """
+
+    # Connect to feature store.
+    project = hopsworks.login(
+        api_key_value=credentials_input["FS_API_KEY"], project=credentials_input["FS_PROJECT_NAME"]
+    )
+    feature_store = project.get_feature_store()
+
+    # Create feature group.
+    object_feature_group = feature_store.get_or_create_feature_group(
+        name=group_name,
+        version=feature_group_version,
+        description= description,
+        # primary_key=pk,
+        # event_time="Month Year",
+        online_enabled=False,
+        expectation_suite=validation_expectation_suite,
+    )
+    # Upload data.
+    object_feature_group.insert(
+        features=data,
+        overwrite=False,
+        write_options={
+            "wait_for_job": True,
+        },
+    )
+
+    # Add feature descriptions.
+
+    for description in group_description:
+        object_feature_group.update_feature_description(
+            description["name"], description["description"]
+        )
+
+    # Update statistics.
+    object_feature_group.statistics_config = {
+        "enabled": True,
+        "histograms": True,
+        "correlations": True,
+    }
+    object_feature_group.update_statistics_config()
+    object_feature_group.compute_statistics()
+
+    return object_feature_group
 
 
-# def _parse_money(x: pd.Series) -> pd.Series:
-#     x = x.str.replace("$", "").str.replace(",", "")
-#     x = x.astype(float)
-#     return x
+def preprocess_sales(
+    data: pd.DataFrame,
+    parameters: Dict[str, Any]) -> pd.DataFrame:
 
-
-# def preprocess_companies(companies: pd.DataFrame) -> pd.DataFrame:
-#     """Preprocesses the data for companies.
-
-#     Args:
-#         companies: Raw data.
-#     Returns:
-#         Preprocessed data, with `company_rating` converted to a float and
-#         `iata_approved` converted to boolean.
-#     """
-#     companies["iata_approved"] = _is_true(companies["iata_approved"])
-#     companies["company_rating"] = _parse_percentage(companies["company_rating"])
-#     return companies
-
-
-# def preprocess_shuttles(shuttles: pd.DataFrame) -> pd.DataFrame:
-#     """Preprocesses the data for shuttles.
-
-#     Args:
-#         shuttles: Raw data.
-#     Returns:
-#         Preprocessed data, with `price` converted to a float and `d_check_complete`,
-#         `moon_clearance_complete` converted to boolean.
-#     """
-#     shuttles["d_check_complete"] = _is_true(shuttles["d_check_complete"])
-#     shuttles["moon_clearance_complete"] = _is_true(shuttles["moon_clearance_complete"])
-#     shuttles["price"] = _parse_money(shuttles["price"])
-#     return shuttles
-
-
-# def create_model_input_table(
-#     shuttles: pd.DataFrame, companies: pd.DataFrame, reviews: pd.DataFrame
-# ) -> pd.DataFrame:
-#     """Combines all data to create a model input table.
-
-#     Args:
-#         shuttles: Preprocessed data for shuttles.
-#         companies: Preprocessed data for companies.
-#         reviews: Raw data for reviews.
-#     Returns:
-#         Model input table.
-
-#     """
-#     rated_shuttles = shuttles.merge(reviews, left_on="id", right_on="shuttle_id")
-#     rated_shuttles = rated_shuttles.drop("id", axis=1)
-#     model_input_table = rated_shuttles.merge(
-#         companies, left_on="company_id", right_on="id"
-#     )
-#     model_input_table = model_input_table.dropna()
-#     return model_input_table
-
-# def preprocess_ibm(ibm: pd.DataFrame) -> pd.DataFrame:
-#     """Preprocesses the data for companies.
-
-#     Args:
-#         companies: Raw data.
-#     Returns:
-#         Preprocessed data
-#     """
-
-#     ibm = ibm.fillna(0)
-
-#     return ibm
-    pass
-
-
-def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     """Preprocesses the sales data.
 
     Args:
@@ -94,9 +183,12 @@ def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     Returns:
         Preprocessed sales
     """
+    
+    columns = data.columns.to_list()
+    assert len(columns) == 3, "Wrong data collected"
 
     sales_data = data.copy()
-    
+
     sales_data = sales_columns_naming_(sales_data)
 
     # Format data
@@ -112,7 +204,11 @@ def preprocess_sales(data: pd.DataFrame) -> pd.DataFrame:
     return sales_data, dummy_value
 
 
-def preprocess_markets(data: pd.DataFrame, dummy_value) -> pd.DataFrame:
+def preprocess_markets(
+        data: pd.DataFrame,
+        dummy_value, 
+        parameters: Dict[str, Any], ) -> pd.DataFrame:
+    
     """Preprocesses the market data.
 
     Args:
@@ -120,6 +216,9 @@ def preprocess_markets(data: pd.DataFrame, dummy_value) -> pd.DataFrame:
     Returns:
         Preprocessed market data
     """
+
+    columns = data.columns.to_list()
+    assert len(columns) == 48, "Wrong data collected"
 
     market_data = data.copy()
 
@@ -145,8 +244,39 @@ def preprocess_markets(data: pd.DataFrame, dummy_value) -> pd.DataFrame:
     # Define the list of columns and convert to float
     market_data.iloc[:, 1:] = market_data.iloc[:, 1:].astype(float)
 
+    # print(market_data.columns)
+    # print(60*"#")
+    # print(len(market_data.columns))
+    # print(len(market_columns_list_()))
+    # print(60*"#")
+    # print([x for x in market_columns_list_() if x not in market_data.columns])
+    print(60*"#")
+    print(market_data.index.name)
+    market_data = market_data.rename_axis('index')
+    print(60*"#")
+
+    logger.info(f"The dataset contains {len(market_data.columns)} columns.")
+    
+    validation_expectation_suite_market_total = build_expectation_suite("market_total_expectations","market_total_features")
+
+    market_total_features_descriptions =[]
+
+    if parameters["to_feature_store"]:
+
+        object_fs_categorical_features = to_feature_store(
+            market_data, "market_total_features",
+            1, "Categorical Features",
+            market_data.index.name,
+            market_total_features_descriptions,
+            validation_expectation_suite_market_total,
+            credentials["feature_store"]
+        )
+        
     # Printing something from dataframe (usually columns)
     # dummy_value is for checking pipelines sequence
+    # columns = market_data.columns.to_list()
+    # print(len(columns), columns[:5])
+    # print(market_data.iloc[:4, 0])
     debug_on_success_(market_data, dummy_value)
 
     return market_data

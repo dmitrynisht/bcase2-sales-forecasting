@@ -4,7 +4,7 @@ import pandas as pd
 def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
     
     # Print columns
-    if True:
+    if False:
         print(data.columns)
 
     # dummy_value is for checking pipelines sequence
@@ -38,8 +38,64 @@ def sales_col_(data):
     return data
 
 
+def market_columns_list_() -> list:
+
+    columns_list = [
+        'Month Year',
+        'China Production Index M&E',
+        'China Shipments Index M&E',
+        'France Production Index M&E',
+        'France Shipments Index M&E',
+        'Germany Production Index M&E',
+        'Germany Shipments Index M&E',
+        'Italy Production Index M&E',
+        'Italy Shipments Index M&E',
+        'Japan Production Index M&E',
+        'Japan Shipments Index M&E',
+        'Switzerland Production Index M&E',
+        'Switzerland Shipments Index M&E',
+        'UK Production Index M&E',
+        'UK Shipments Index M&E',
+        'US Production Index M&E',
+        'US Shipments Index M&E',
+        'Europe Production Index M&E',
+        'Europe Shipments Index M&E',
+        'Price of Base Metals',
+        'Price of Energy',
+        'Price of Metals & Minerals',
+        'Price of Natural gas index',
+        'Price of Crude oil (AVG)',
+        'Price of Copper',
+        'United States: EUR in LCU',
+        'US Producer Prices Electrical eq.',
+        'UK Producer Prices Electrical eq.',
+        'Italy Producer Prices Electrical eq.',
+        'France Producer Prices Electrical eq.',
+        'Germany Producer Prices Electrical eq.',
+        'China Producer Prices Electrical eq.',
+        'US Production Index Machinery eq.',
+        'Global Production Index Machinery eq.',
+        'Switzerland Production Index Machinery eq.',
+        'UK Production Index Machinery eq.',
+        'Italy Production Index Machinery eq.',
+        'Japan Production Index Machinery eq.',
+        'France Production Index Machinery eq.',
+        'Germany Production Index Machinery eq.',
+        'US Production Index Electrical eq.',
+        'Global Production Index Electrical eq.',
+        'Switzerland Production Index Electrical eq.',
+        'UK Production Index Electrical eq.',
+        'Italy Production Index Electrical eq.',
+        'Japan Production Index Electrical eq.',
+        'France Production Index Electrical eq.',
+        'Germany Production Index Electrical eq.',
+    ]
+
+    return columns_list
+
+
 def market_columns_naming_(market_data: pd.DataFrame) -> pd.DataFrame:
-    
+
     # Combine the headers from the first row with the names in the second row
     new_headers = []
     for header, name in zip(market_data.iloc[0], market_data.iloc[1]):
@@ -47,6 +103,9 @@ def market_columns_naming_(market_data: pd.DataFrame) -> pd.DataFrame:
             new_headers.append(f'{header}_{name}')
         else:
             new_headers.append(name if isinstance(name, str) else '')
+
+    # print(len(new_headers), new_headers)
+    # print("##############################")
 
     # Assign the new headers to the DataFrame
     market_data.columns = new_headers
@@ -57,7 +116,7 @@ def market_columns_naming_(market_data: pd.DataFrame) -> pd.DataFrame:
     # Now df has the updated headers
     market_data.rename(
         {
-            'Index 2010=100 (if not otherwise noted)_date':'Month Year',
+            'Index 2010=100 (if not otherwise noted)':'Month Year',
             'China_Production Index Machinery & Electricals':'China Production Index M&E',
             'China_Shipments Index Machinery & Electricals':'China Shipments Index M&E',
             'France_Production Index Machinery & Electricals':'France Production Index M&E',
