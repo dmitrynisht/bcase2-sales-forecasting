@@ -186,16 +186,16 @@ def to_feature_store(
     return object_feature_group
 
 
-def preprocess_sales(
+def ingest_sales(
     data: pd.DataFrame,
     parameters: Dict[str, Any]) -> pd.DataFrame:
 
-    """Preprocesses the sales data.
+    """Ingest the sales data.
 
     Args:
         data: Raw sales.
     Returns:
-        Preprocessed sales
+        Ingested sales
     """
     
     columns = data.columns.to_list()
@@ -218,17 +218,17 @@ def preprocess_sales(
     return sales_data, dummy_value
 
 
-def preprocess_markets(
+def ingest_markets(
         data: pd.DataFrame,
         dummy_value, 
         parameters: Dict[str, Any], ) -> pd.DataFrame:
     
-    """Preprocesses the market data.
+    """Ingest the market data.
 
     Args:
         data: Raw markets.
     Returns:
-        Preprocessed market data
+        Ingested market data
     """
 
     # actually could be removed from here because we have similar expectation
@@ -258,20 +258,23 @@ def preprocess_markets(
     # Dropping intermediate columns if needed
     market_data.drop(columns=['year', 'month'], inplace=True)
 
+    market_data = market_columns_sanitation_(market_data)
+
     # Define the list of columns and convert to float
     market_data.iloc[:, 1:] = market_data.iloc[:, 1:].astype(float)
 
-    # Reset the index to convert the default index to a column
-    market_data = market_data.reset_index()
-
     # Set True/False whenever debug needed/or not
-    if True:
+    if False:
         print_to_debug_(market_data, None)
 
     logger.info(f"The dataset contains {len(market_data.columns)} columns.")
     
-    market_numerical_features = market_data.select_dtypes(exclude=['object','string','category']).columns.tolist()
-    market_categorical_features = market_data.select_dtypes(include=['object','string','category']).columns.tolist()
+    categorical_dtypes = ['object','string','category']
+    market_numerical_features = market_data.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
+    market_categorical_features = market_data.select_dtypes(include=categorical_dtypes).columns.tolist()
+
+    # Reset the index to convert the default index to a column
+    market_data = market_data.reset_index()
 
     validation_expectation_suite_market_total = build_expectation_suite("market_total_expectations","market_total_features")
     validation_expectation_suite_market_numerical = build_expectation_suite("market_numerical_expectations","market_numerical_features")
@@ -282,9 +285,9 @@ def preprocess_markets(
     market_categorical_feature_descriptions =[]
     # target_feature_descriptions =[]
 
-    df_full_numeric = market_data[["index","datetime"] + market_numerical_features]
-    df_full_categorical = market_data[["index","datetime"] + market_categorical_features]
-    # df_full_target = df_full[["index","datetime"] + [parameters["target_column"]]]
+    df_full_numeric = market_data[["index","month_year"] + market_numerical_features]
+    df_full_categorical = market_data[["index","month_year"] + market_categorical_features]
+    # df_full_target = df_full[["index","month_year"] + [parameters["target_column"]]]
 
     if parameters["to_feature_store"]:
         
@@ -303,10 +306,19 @@ def preprocess_markets(
         #     validation_expectation_suite_market_total,
         #     credentials["feature_store"]
         # )
-        
+
     # Printing something from dataframe (usually columns)
     # dummy_value is for checking pipelines sequence
     debug_on_success_(market_data, dummy_value)
 
     return market_data
 
+
+def preprocess_sales(
+        data: pd.DataFrame,
+        dummy_value, 
+        parameters: Dict[str, Any], ) -> pd.DataFrame:
+    
+    pass
+
+    return data, dummy_value

@@ -16,9 +16,9 @@ def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
     return
 
 
-def print_to_debug_(market_data: pd.DataFrame, dummy_value: Any) -> None:
+def print_to_debug_(data: pd.DataFrame, dummy_value: Any) -> None:
     
-    headers = market_data.columns.to_list()
+    headers = data.columns.to_list()
     valid_headers = market_columns_list_()
     print(f'{30*"#"} {"first 5 columns of market_data".upper()} {30*"#"}')
     print(headers[:5])
@@ -31,8 +31,8 @@ def print_to_debug_(market_data: pd.DataFrame, dummy_value: Any) -> None:
     # print(f'{30*"#"} {"length of market_columns_list_()".upper()} {30*"#"}')
     print(90*"#")
 
-    market_data = market_columns_sanitation_(market_data)
-    headers = market_data.columns.to_list()
+    data = market_columns_sanitation_(data)
+    headers = data.columns.to_list()
     print(f'{30*"#"} {"columns after sanitation".upper()} {30*"#"}')
     print("col count:", len(headers), "valid count:", len(valid_headers))
     print("first 5:")
@@ -41,8 +41,17 @@ def print_to_debug_(market_data: pd.DataFrame, dummy_value: Any) -> None:
     print("last 5:")
     print(headers[-5:])
     print(valid_headers[-5:])
-    print(market_data.dtypes)
+    print(data.dtypes)
     print(90*"#")
+
+    # if False:
+    #     # print(market_data.dtypes)
+    #     print(market_data['month_year'].dtypes)
+    #     print(f'{30*"#"} {"market_categorical_features".upper()} {30*"#"}')
+    #     print(market_categorical_features)
+    #     print(f'{30*"#"} {"market_numerical_features".upper()} {30*"#"}')
+    #     print(market_numerical_features)
+    #     return market_data
 
     pass
 

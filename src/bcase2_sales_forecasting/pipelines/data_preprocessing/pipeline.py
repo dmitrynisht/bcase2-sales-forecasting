@@ -1,6 +1,6 @@
 from kedro.pipeline import Pipeline, node, pipeline
 
-from .nodes import preprocess_sales, preprocess_markets
+from .nodes import ingest_sales, ingest_markets, preprocess_sales
 # from .nodes import create_model_input_table, preprocess_companies, preprocess_shuttles, preprocess_ibm
 
 
@@ -8,24 +8,24 @@ def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         [
             node(
-                func=preprocess_sales,
+                func=ingest_sales,
                 inputs=["sales_raw_data", "parameters"],
-                outputs=["preprocessed_sales", "dummy"],
-                name="preprocess_sales_node",
+                outputs=["ingested_sales", "dummy"],
+                name="ingest_sales_node",
             ),
             node(
-                func=preprocess_markets,
+                func=ingest_markets,
                 inputs=["market_raw_data", "dummy", "parameters"],
-                outputs="preprocessed_markets",
-                name="preprocess_markets_node",
+                outputs="ingested_markets",
+                name="ingest_markets_node",
+            ),
+            node(
+                func=preprocess_sales,
+                inputs=["ingested_sales", "dummy"],
+                outputs=["clean_sales_full", "dummy"],
+                name="preprocess_sales_node",
             ),
 
-            # node(
-            #     func=preprocess_shuttles,
-            #     inputs="shuttles",
-            #     outputs="preprocessed_shuttles",
-            #     name="preprocess_shuttles_node",
-            # ),
             # node(
             #     func=create_model_input_table,
             #     inputs=["preprocessed_shuttles", "preprocessed_companies", "reviews"],

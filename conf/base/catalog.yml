@@ -5,15 +5,15 @@
 #
 # We support interacting with a variety of data stores including local file systems, cloud, network and HDFS
 
+dummy:
+  type: pickle.PickleDataset
+  filepath: data/02_intermediate/dummy.pkl
+
 sales_raw_data:
   type: pandas.CSVDataset
   filepath: data/01_raw/Case2_Sales_data.csv
   load_args:
     sep: ';'
-
-dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/dummy.pkl
 
 market_raw_data:
   type: pandas.ExcelDataset
@@ -22,10 +22,18 @@ market_raw_data:
     engine: openpyxl
     header: null
 
-preprocessed_sales:
+ingested_sales:
   type: pandas.CSVDataset
-  filepath: data/02_intermediate/clean_sales_full.csv
+  filepath: data/02_intermediate/ingested_sales.csv
 
-preprocessed_markets:
+ingested_markets:
   type: pandas.CSVDataset
-  filepath: data/02_intermediate/clean_markets_full.csv
+  filepath: data/02_intermediate/ingested_markets.csv
+
+# preprocessed_sales:
+#   type: pandas.CSVDataset
+#   filepath: data/02_intermediate/clean_sales_full.csv
+
+# preprocessed_markets:
+#   type: pandas.CSVDataset
+#   filepath: data/02_intermediate/clean_markets_full.csv
