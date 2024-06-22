@@ -201,21 +201,21 @@ def ingest_sales(
     columns = data.columns.to_list()
     assert len(columns) == 3, "Wrong data collected"
 
-    sales_data = data.copy()
+    sales_copy = data.copy()
 
-    sales_data = sales_columns_naming_(sales_data)
+    sales_copy = sales_columns_naming_(sales_copy)
 
     # Format data
-    sales_data = full_date_col_(sales_data)
+    sales_copy = full_date_col_(sales_copy)
 
     # Format sales
-    sales_data = sales_col_(sales_data)
+    sales_copy = sales_col_(sales_copy)
 
     # Printing something from dataframe (usually columns)
     dummy_value = [0]
-    debug_on_success_(sales_data, dummy_value)
+    debug_on_success_(sales_copy, dummy_value)
 
-    return sales_data, dummy_value
+    return sales_copy, dummy_value
 
 
 def ingest_markets(
@@ -236,45 +236,45 @@ def ingest_markets(
     columns = data.columns.to_list()
     assert len(columns) == 48, "Wrong data collected"
 
-    market_data = data.copy()
+    market_copy = data.copy()
 
-    market_data = market_columns_naming_(market_data)
+    market_copy = market_columns_naming_(market_copy)
 
-    market_data = market_data.drop(market_data.index[0]).reset_index(drop=True)
+    market_copy = market_copy.drop(market_copy.index[0]).reset_index(drop=True)
 
     # We believed it would be easier to understand the columns with clearer names
-    market_data['Month Year'] = market_data['Month Year'].str.strip()
+    market_copy['Month Year'] = market_copy['Month Year'].str.strip()
 
     # Splitting the column into year and month
-    market_data[['year', 'month']] = market_data['Month Year'].str.split('m', expand=True)
+    market_copy[['year', 'month']] = market_copy['Month Year'].str.split('m', expand=True)
 
     # Converting year and month to datetime
-    market_data['Month Year'] = pd.to_datetime(market_data['year'] + '-' + market_data['month'], format='%Y-%m')
+    market_copy['Month Year'] = pd.to_datetime(market_copy['year'] + '-' + market_copy['month'], format='%Y-%m')
 
     # # for feature store its better not to do this
     # # Formatting datetime to Month Year
-    # market_data['Month Year'] = market_data['Month Year'].dt.strftime('%b %Y')
+    # market_copy['Month Year'] = market_copy['Month Year'].dt.strftime('%b %Y')
 
     # Dropping intermediate columns if needed
-    market_data.drop(columns=['year', 'month'], inplace=True)
+    market_copy.drop(columns=['year', 'month'], inplace=True)
 
-    market_data = market_columns_sanitation_(market_data)
+    market_copy = market_columns_sanitation_(market_copy)
 
     # Define the list of columns and convert to float
-    market_data.iloc[:, 1:] = market_data.iloc[:, 1:].astype(float)
+    market_copy.iloc[:, 1:] = market_copy.iloc[:, 1:].astype(float)
 
     # Set True/False whenever debug needed/or not
     if False:
-        print_to_debug_(market_data, None)
+        print_to_debug_(market_copy, None)
 
-    logger.info(f"The dataset contains {len(market_data.columns)} columns.")
+    logger.info(f"The dataset contains {len(market_copy.columns)} columns.")
     
     categorical_dtypes = ['object','string','category']
-    market_numerical_features = market_data.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
-    market_categorical_features = market_data.select_dtypes(include=categorical_dtypes).columns.tolist()
+    market_numerical_features = market_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
+    market_categorical_features = market_copy.select_dtypes(include=categorical_dtypes).columns.tolist()
 
     # Reset the index to convert the default index to a column
-    market_data = market_data.reset_index()
+    market_copy = market_copy.reset_index()
 
     validation_expectation_suite_market_total = build_expectation_suite("market_total_expectations","market_total_features")
     validation_expectation_suite_market_numerical = build_expectation_suite("market_numerical_expectations","market_numerical_features")
@@ -285,8 +285,8 @@ def ingest_markets(
     market_categorical_feature_descriptions =[]
     # target_feature_descriptions =[]
 
-    df_full_numeric = market_data[["index","month_year"] + market_numerical_features]
-    df_full_categorical = market_data[["index","month_year"] + market_categorical_features]
+    df_full_numeric = market_copy[["index","month_year"] + market_numerical_features]
+    df_full_categorical = market_copy[["index","month_year"] + market_categorical_features]
     # df_full_target = df_full[["index","month_year"] + [parameters["target_column"]]]
 
     if parameters["to_feature_store"]:
@@ -309,9 +309,9 @@ def ingest_markets(
 
     # Printing something from dataframe (usually columns)
     # dummy_value is for checking pipelines sequence
-    debug_on_success_(market_data, dummy_value)
+    debug_on_success_(market_copy, dummy_value)
 
-    return market_data
+    return market_copy
 
 
 def preprocess_sales(
@@ -319,6 +319,78 @@ def preprocess_sales(
         dummy_value, 
         parameters: Dict[str, Any], ) -> pd.DataFrame:
     
+    logger = logging.getLogger(__name__)
+
+    # Copy the DataFrame
+    sales_copy = data.copy()
+
+    # # This step already done while ingesting
+    # # Convert 'Full_Date' column to datetime
+    # sales_copy['Full_Date'] = pd.to_datetime(sales_copy['Full_Date'], format='%d-%m-%Y')
+
+    # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
+    sales_copy = sales_copy.groupby([sales_copy['Full_Date'].dt.to_period('M'), 'GCK']).sum().reset_index()
+
+    # # We will try to skip doing this on pipeline
+    # # Convert 'Full_Date' column to string
+    # sales_copy['Full_Date'] = pd.to_datetime(sales_copy['Full_Date'].astype(str))
+    
+
+    # # Notebook ch3.1
+    # Define a dictionary where keys are column names and values are data types
+    data_types = {
+        'Full_Date': 'datetime64[ns]',
+        'GCK': 'object',
+        'Sales €': 'float32'
+    }
+
+    # Apply data types to the DataFrame
+    for col, dtype in data_types.items():
+        sales_copy[col] = sales_copy[col].astype(dtype)
+
+    logger.info(f"The sales dataset columns convertion finished.")
+
     pass
 
-    return data, dummy_value
+    return sales_copy, dummy_value
+
+
+def preprocess_markets(
+        data: pd.DataFrame,
+        dummy_value, 
+        parameters: Dict[str, Any], ) -> pd.DataFrame:
+    
+    logger = logging.getLogger(__name__)
+
+    # Copy
+    market_copy = data.copy()
+
+    # # This is already done
+    # # Function to parse date-like strings
+    # def parse_date(date_str):
+    #     month_str, year_str = date_str.split()
+    #     month_map = {
+    #         'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+    #         'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+    #     }
+    #     month = month_map[month_str]
+    #     year = int(year_str)
+    #     return datetime(year, month, 1)
+
+    # # Apply the function to the 'date' column
+    # market_copy['Month Year'] = market_copy['Month Year'].apply(parse_date)
+
+    categorical_dtypes = ['object','string','category']
+    market_numerical_features = market_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
+    
+    new_numerical_type = 'float16'
+
+    # Apply data types to the DataFrame
+    for col in market_numerical_features:
+        market_copy[col] = market_copy[col].astype(new_numerical_type)
+
+    logger.info(f"The market dataset {len(market_numerical_features)} columns converted to {new_numerical_type}. Conversion finished.")
+
+    pass
+
+    return market_copy, dummy_value
