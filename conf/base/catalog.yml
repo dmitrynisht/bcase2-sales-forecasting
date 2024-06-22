@@ -5,9 +5,21 @@
 #
 # We support interacting with a variety of data stores including local file systems, cloud, network and HDFS
 
-dummy:
+01_dummy:
   type: pickle.PickleDataset
-  filepath: data/02_intermediate/dummy.pkl
+  filepath: data/02_intermediate/01_dummy.pkl
+
+02_dummy:
+  type: pickle.PickleDataset
+  filepath: data/02_intermediate/02_dummy.pkl
+
+03_dummy:
+  type: pickle.PickleDataset
+  filepath: data/02_intermediate/03_dummy.pkl
+
+04_dummy:
+  type: pickle.PickleDataset
+  filepath: data/02_intermediate/04_dummy.pkl
 
 sales_raw_data:
   type: pandas.CSVDataset
@@ -25,15 +37,19 @@ market_raw_data:
 ingested_sales:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/ingested_sales.csv
+  load_args:
+    parse_dates: ['full_date']
+  save_args:
+    date_format: '%d-%m-%Y'
 
 ingested_markets:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/ingested_markets.csv
 
-# preprocessed_sales:
-#   type: pandas.CSVDataset
-#   filepath: data/02_intermediate/clean_sales_full.csv
+preprocessed_sales:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/preprocessed_sales.csv
 
-# preprocessed_markets:
-#   type: pandas.CSVDataset
-#   filepath: data/02_intermediate/clean_markets_full.csv
+preprocessed_markets:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/preprocessed_markets.csv

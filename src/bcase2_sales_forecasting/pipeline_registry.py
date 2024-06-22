@@ -26,6 +26,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
 
     return {
         "raw_data_unit_tests": raw_data_unit_tests,
-        "preprocess_data": preprocess_data
-
+        "preprocess_data": preprocess_data,
+        
+        "long_pipe": raw_data_unit_tests + preprocess_data,
     }

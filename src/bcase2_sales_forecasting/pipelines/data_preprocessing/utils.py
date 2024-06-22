@@ -3,22 +3,23 @@ import re
 from typing import Any, Dict
 
 
-def debug_on_success_(data: pd.DataFrame, dummy_value: int) -> None:
+def debug_on_success_(data: pd.DataFrame, dummy_value: int, pipeline_name: str = "", f_verbose: bool = False) -> None:
     
     # Print columns
-    if False:
-        print(data.columns)
+    if f_verbose:
+        print(data.dtypes)
 
     # dummy_value is for checking pipelines sequence
     dummy_value.append(dummy_value[-1] + 1) 
-    print("pipeline succeed !", dummy_value)
+    print(f"pipeline {pipeline_name} succeed !; f_verbose={f_verbose};", dummy_value)
 
     return
 
 
 def print_to_debug_(data: pd.DataFrame, dummy_value: Any) -> None:
     
-    headers = data.columns.to_list()
+    data_copy = data.copy()
+    headers = data_copy.columns.to_list()
     valid_headers = market_columns_list_()
     print(f'{30*"#"} {"first 5 columns of market_data".upper()} {30*"#"}')
     print(headers[:5])
@@ -31,8 +32,8 @@ def print_to_debug_(data: pd.DataFrame, dummy_value: Any) -> None:
     # print(f'{30*"#"} {"length of market_columns_list_()".upper()} {30*"#"}')
     print(90*"#")
 
-    data = market_columns_sanitation_(data)
-    headers = data.columns.to_list()
+    data_copy = columns_sanitation_(data_copy)
+    headers = data_copy.columns.to_list()
     print(f'{30*"#"} {"columns after sanitation".upper()} {30*"#"}')
     print("col count:", len(headers), "valid count:", len(valid_headers))
     print("first 5:")
@@ -41,7 +42,7 @@ def print_to_debug_(data: pd.DataFrame, dummy_value: Any) -> None:
     print("last 5:")
     print(headers[-5:])
     print(valid_headers[-5:])
-    print(data.dtypes)
+    print(data_copy.dtypes)
     print(90*"#")
 
     # if False:
@@ -67,7 +68,7 @@ def sales_columns_naming_(data: pd.DataFrame) -> pd.DataFrame:
 def full_date_col_(data: pd.DataFrame) -> pd.DataFrame:
     
     # Format data
-    data['Full_Date'] = pd.to_datetime(data['Full_Date'], format='%d.%m.%Y').dt.strftime('%d-%m-%Y')
+    data['Full_Date'] = pd.to_datetime(data['Full_Date'], format='%d.%m.%Y')#.dt.strftime('%d-%m-%Y')
     
     return data
 
@@ -214,7 +215,7 @@ def market_columns_naming_(market_data: pd.DataFrame) -> pd.DataFrame:
     return market_data
 
 
-def market_columns_sanitation_(market_data: pd.DataFrame) -> pd.DataFrame:
+def columns_sanitation_(market_data: pd.DataFrame) -> pd.DataFrame:
     """
         error code: 270040, error msg: Illegal feature name, user msg: , the provided feature name month year is
             invalid.
