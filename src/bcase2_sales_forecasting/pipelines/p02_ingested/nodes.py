@@ -45,12 +45,13 @@ def build_expectation_suite(expectation_suite_name: str, feature_group: str) -> 
         expectation_suite_bank.add_expectation(
             ExpectationConfiguration(
                 expectation_type="expect_column_values_to_be_of_type",
-                kwargs={"column": "sales_€", "type_": "float64"},
+                kwargs={"column": "sales_eur", "type_": "float64"},
             )
         )
 
         pass
 
+    #
     if feature_group == "market_total_features":
 
         expected_column_names = market_columns_list_()
@@ -119,7 +120,24 @@ def build_expectation_suite(expectation_suite_name: str, feature_group: str) -> 
             #     ) 
             pass
         
-    
+    # numerical features
+    if feature_group == 'gdp_numerical_features':
+        
+        expectation_suite_bank.add_expectation(
+            ExpectationConfiguration(
+                expectation_type="expect_table_column_count_to_equal",
+                kwargs={"value": 2},
+            )
+        )
+
+        expectation_suite_bank.add_expectation(
+            ExpectationConfiguration(
+                expectation_type="expect_column_values_to_be_of_type",
+                kwargs={"column": "gdp", "type_": "float64"},
+            )
+        )
+
+        pass
 
     return expectation_suite_bank
 
@@ -129,6 +147,8 @@ def to_feature_store(
     group_name: str,
     feature_group_version: int,
     description: str,
+    primary_key: list,
+    event_time: str,
     group_description: dict,
     validation_expectation_suite: ExpectationSuite,
     credentials_input: dict
@@ -161,9 +181,9 @@ def to_feature_store(
     object_feature_group = feature_store.get_or_create_feature_group(
         name=group_name,
         version=feature_group_version,
-        description= description,
-        primary_key=["index"],
-        event_time="month_year",
+        description=description,
+        primary_key=primary_key,
+        event_time=event_time,
         online_enabled=False,
         expectation_suite=validation_expectation_suite,
     )
@@ -225,30 +245,33 @@ def ingest_sales(
 
         categorical_dtypes = ['object','string','category']
         sales_numerical_features = sales_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
-        sales_categorical_features = sales_copy.select_dtypes(include=categorical_dtypes).columns.tolist()
+        # sales_categorical_features = sales_copy.select_dtypes(include=categorical_dtypes).columns.tolist()
 
         # Reset the index to convert the default index to a column
         sales_copy = sales_copy.reset_index()
 
         validation_expectation_suite_sales_numerical = build_expectation_suite("sales_numerical_expectations","sales_numerical_features")
-        validation_expectation_suite_sales_categorical = build_expectation_suite("sales_categorical_expectations","sales_categorical_features")
+        # validation_expectation_suite_sales_categorical = build_expectation_suite("sales_categorical_expectations","sales_categorical_features")
 
-        sales_numerical_feature_descriptions =[]
-        sales_categorical_feature_descriptions =[]
+        sales_numerical_feature_descriptions = {}
+        # sales_categorical_feature_descriptions = {}
 
-        df_full_numeric = sales_copy[["index","Full_Date"] + sales_numerical_features]
-        df_full_categorical = sales_copy[["index","month_year"] + sales_categorical_features]
+        primary_key = ["index"]
+        event_time = "full_date"
+
+        df_full_numeric = sales_copy[["index","full_date"] + sales_numerical_features]
+        # df_full_categorical = sales_copy[["index","month_year"] + sales_categorical_features]
 
         object_fs_numerical_features = to_feature_store(
             df_full_numeric, "sales_numerical_features",
             1, "Numerical Features",
+            primary_key,
+            event_time,
             sales_numerical_feature_descriptions,
             validation_expectation_suite_sales_numerical,
             credentials["feature_store"]
         )
 
-        to_remove_1 = "sales"
-        to_remove_2 = "sales_copy"
         logger.info(f"The SALES data delivered to feature store.")
 
     else:
@@ -328,18 +351,23 @@ def ingest_markets(
         validation_expectation_suite_market_numerical = build_expectation_suite("market_numerical_expectations","market_numerical_features")
         validation_expectation_suite_market_categorical = build_expectation_suite("market_categorical_expectations","market_categorical_features")
 
-        # market_total_features_descriptions =[]
-        market_numerical_feature_descriptions =[]
-        market_categorical_feature_descriptions =[]
-        # target_feature_descriptions =[]
+        # market_total_features_descriptions = {}
+        market_numerical_feature_descriptions = {}
+        # market_categorical_feature_descriptions = {}
+        # target_feature_descriptions = {}
+
+        primary_key = ["index"]
+        event_time = "month_year"
 
         df_full_numeric = market_copy[["index","month_year"] + market_numerical_features]
-        df_full_categorical = market_copy[["index","month_year"] + market_categorical_features]
+        # df_full_categorical = market_copy[["index","month_year"] + market_categorical_features]
         # df_full_target = df_full[["index","month_year"] + [parameters["target_column"]]]
 
         object_fs_numerical_features = to_feature_store(
             df_full_numeric, "market_numerical_features",
             1, "Numerical Features",
+            primary_key,
+            event_time,
             market_numerical_feature_descriptions,
             validation_expectation_suite_market_numerical,
             credentials["feature_store"]
@@ -373,112 +401,92 @@ def ingest_markets(
     return market_copy, dummy_value
 
 
-def preprocess_sales(
-        data: pd.DataFrame, 
+def ingest_gdp(
+        data: pd.DataFrame,
         parameters: Dict[str, Any],
         dummy_value) -> pd.DataFrame:
     
+    """Ingest the German_GDP data.
+
+    Args:
+        data: Raw German_GDP.
+    Returns:
+        Ingested German_GDP data
+    """
+
     logger = logging.getLogger(__name__)
 
-    # Copy the DataFrame
-    sales_copy = data.copy()
-
-    # # This step already done while ingesting
-    # # Convert 'Full_Date' column to datetime
-    # sales_copy['Full_Date'] = pd.to_datetime(sales_copy['Full_Date'], format='%d-%m-%Y')
-
-    # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
-    sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum().reset_index()
-    
-    # # We will try to skip doing this on pipeline, because data types should be preserved by kedro
-    # # Convert 'Full_Date' column to string
-    # sales_copy['Full_Date'] = pd.to_datetime(sales_copy['Full_Date'].astype(str))
-    #
-    
-    # # Notebook ch3.1
-    # Define a dictionary where keys are column names and values are data types
-    data_types = {
-        # 'full_date': 'datetime64[ns]',
-        # 'gck': 'object',
-        'sales_€': 'float32'
-    }
-    
-    # Apply data types to the DataFrame
-    for col, dtype in data_types.items():
-        sales_copy[col] = sales_copy[col].astype(dtype)
-
-    logger.info(f"The sales dataset columns convertion finished.")
-
-    pass
-
-    # Printing something from dataframe (usually columns)
-    # dummy_value is for checking pipelines sequence
-    pipeline_name = "preprocess_sales"
-    f_verbose = True
-    debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
-
-    return sales_copy, dummy_value
-
-
-def preprocess_markets(
-        data: pd.DataFrame, 
-        parameters: Dict[str, Any],
-        dummy_value) -> pd.DataFrame:
-    
-    logger = logging.getLogger(__name__)
-
-    # Copy
-    market_copy = data.copy()
-
-    # # This is already done
-    # # Function to parse date-like strings
-    # def parse_date(date_str):
-    #     month_str, year_str = date_str.split()
-    #     month_map = {
-    #         'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-    #         'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
-    #     }
-    #     month = month_map[month_str]
-    #     year = int(year_str)
-    #     return datetime(year, month, 1)
-
-    # # Apply the function to the 'date' column
-    # market_copy['Month Year'] = market_copy['Month Year'].apply(parse_date)
-
-    categorical_dtypes = ['object','string','category']
-    market_numerical_features = market_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
-    market_numerical_features.remove('index')
-    # print("print to remove, markets preprocessing !".upper(), "list of columns:", market_numerical_features)
-    new_numerical_type = 'float16'
-
-    # Apply data types to the DataFrame
-    for col in market_numerical_features:
-        market_copy[col] = market_copy[col].astype(new_numerical_type)
-
-    logger.info(f"The market dataset {len(market_numerical_features)} columns converted to {new_numerical_type}. Conversion finished.")
-
-    pass
-
-    # Printing something from dataframe (usually columns)
-    # dummy_value is for checking pipelines sequence
-    pipeline_name = "preprocess_markets"
-    f_verbose = True
-    debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
-
-    return market_copy, dummy_value
-
-
-def preprocess_german_gdp(
-        data: pd.DataFrame, 
-        parameters: Dict[str, Any],
-        dummy_value) -> pd.DataFrame:
-    
-    logger = logging.getLogger(__name__)
-
-    # Copy
     gdp_copy = data.copy()
 
-    # gdp_copy.set_index('month_year', inplace=True)
+    # Convert the 'DATE' column to datetime format and set it as the index
+    gdp_copy['Month Year'] = pd.to_datetime(gdp_copy['Date'])
+    gdp_copy.drop("Date", axis=1, inplace=True)
+    
+    gdp_copy = columns_sanitation_(gdp_copy)
 
-    # # Resample the data to monthly frequency and forward fill missing values
-    # gdp_monthly = pd.DataFrame(gdp_copy.resample('MS').ffill()['GDP'] / 3).reset_index()
+    # Set True/False whenever debug needed/or not
+    if False:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        pipeline_name = "ingest_german_gdp"
+        f_verbose = True
+        debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
+
+    logger.info(f"The GERMAN GDP dataset contains {len(gdp_copy.columns)} columns.")
+
+    if parameters["to_feature_store"]:
+
+        categorical_dtypes = ['object','string','category']
+        gdp_numerical_features = gdp_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
+        # market_categorical_features = market_copy.select_dtypes(include=categorical_dtypes).columns.tolist()
+
+        # Reset the index to convert the default index to a column
+        # gdp_copy.set_index('month_year', inplace=True)# check if it will work to have one column both index and datetime
+        gdp_copy = gdp_copy.reset_index()
+
+        # validation_expectation_suite_market_total = build_expectation_suite("market_total_expectations","market_total_features")
+        validation_expectation_suite_gdp_numerical = build_expectation_suite("gdp_numerical_expectations","gdp_numerical_features")
+        # validation_expectation_suite_gdp_categorical = build_expectation_suite("gdp_categorical_expectations","gdp_categorical_features")
+
+        # market_total_features_descriptions = {}
+        gdp_numerical_feature_descriptions = {}
+        # market_categorical_feature_descriptions = {}
+        # # target_feature_descriptions = {}
+
+        primary_key = ["index"]
+        event_time = "month_year"
+
+        df_full_numeric = gdp_copy[["index","month_year"] + gdp_numerical_features]
+        # df_full_categorical = market_copy[["index","month_year"] + market_categorical_features]
+        # # df_full_target = df_full[["index","month_year"] + [parameters["target_column"]]]
+
+        object_fs_numerical_features = to_feature_store(
+            df_full_numeric, "gdp_numerical_features",
+            1, "Numerical Features",
+            primary_key,
+            event_time,
+            gdp_numerical_feature_descriptions,
+            validation_expectation_suite_gdp_numerical,
+            credentials["feature_store"]
+        )
+
+        logger.info(f"The GERMAN GDP data delivered to feature store.")
+
+    else:
+        # actually could be removed from here because we have similar expectation
+        #   but not identical
+        columns = gdp_copy.columns.to_list()
+        assert len(columns) == 2, "Wrong data collected"
+        
+        # Reset the index to convert the default index to a column
+        gdp_copy = gdp_copy.reset_index()
+
+    # Set True/False whenever debug needed/or not
+    if True:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        pipeline_name = "ingest_german_gdp"
+        f_verbose = True
+        debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
+
+    return gdp_copy, dummy_value

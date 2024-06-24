@@ -5,8 +5,8 @@ from typing import Dict
 from kedro.pipeline import Pipeline
 from bcase2_sales_forecasting.pipelines import (
     raw_data_unit_tests as raw_data_tests,
+    p02_ingested as ingested,
     data_preprocessing as preprocessing
-
 #
 )
 
@@ -22,11 +22,13 @@ def register_pipelines() -> Dict[str, Pipeline]:
     # return pipelines
     
     raw_data_unit_tests = raw_data_tests.create_pipeline()
+    raw_data_ingested = ingested.create_pipeline()
     preprocess_data = preprocessing.create_pipeline()
 
     return {
         "raw_data_unit_tests": raw_data_unit_tests,
+        "raw_data_ingested": raw_data_ingested,
         "preprocess_data": preprocess_data,
         
-        "long_pipe": raw_data_unit_tests + preprocess_data,
+        # "long_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data,
     }
