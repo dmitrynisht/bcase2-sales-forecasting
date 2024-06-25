@@ -4,7 +4,7 @@ from typing import Dict
 # from kedro.framework.project import find_pipelines
 from kedro.pipeline import Pipeline
 from bcase2_sales_forecasting.pipelines import (
-    raw_data_unit_tests as raw_data_tests,
+    p01_raw_data_unit_tests as raw_data_tests,
     p02_ingested as ingested,
     p03_data_preprocessing as preprocessing
 #
