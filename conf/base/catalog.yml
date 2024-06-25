@@ -25,6 +25,10 @@
   type: pickle.PickleDataset
   filepath: data/02_intermediate/05_dummy.pkl
 
+06_dummy:
+  type: pickle.PickleDataset
+  filepath: data/02_intermediate/06_dummy.pkl
+
 sales_raw_data:
   type: pandas.CSVDataset
   filepath: data/01_raw/Case2_Sales_data.csv
@@ -63,15 +67,27 @@ ingested_markets:
 ingested_german_gdp:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/ingested_german_gdp.csv
-  # load_args:
-  #   parse_dates: ['date']
+  load_args:
+    parse_dates: ['month_year']
   # save_args:
   #   date_format: '%Y-%m'
 
 preprocessed_sales:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/preprocessed_sales.csv
+  load_args:
+    parse_dates: ['full_date']
+  save_args:
+    date_format: '%d-%m-%Y'
 
 preprocessed_markets:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/preprocessed_markets.csv
+  load_args:
+    parse_dates: ['month_year']
+  save_args:
+    date_format: '%Y-%m'
+
+processed_markets:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/processed_markets.csv

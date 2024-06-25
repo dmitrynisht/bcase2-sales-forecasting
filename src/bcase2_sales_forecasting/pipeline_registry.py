@@ -6,7 +6,7 @@ from kedro.pipeline import Pipeline
 from bcase2_sales_forecasting.pipelines import (
     raw_data_unit_tests as raw_data_tests,
     p02_ingested as ingested,
-    data_preprocessing as preprocessing
+    p03_data_preprocessing as preprocessing
 #
 )
 
