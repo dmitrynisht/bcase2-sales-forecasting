@@ -205,18 +205,11 @@ def preprocess_sales(
     # Copy the DataFrame
     sales_copy = data.copy()
 
-    # # This step already done while ingesting
-    # # Convert 'Full_Date' column to datetime
-    # sales_copy['Full_Date'] = pd.to_datetime(sales_copy['Full_Date'], format='%d-%m-%Y')
+    # Convert 'Full_Date' column to datetime already done while ingesting
 
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
     sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum().reset_index()
-    
-    # # We will try to skip doing this on pipeline, because data types should be preserved by kedro
-    # # Convert 'Full_Date' column to string
-    # sales_copy['Full_Date'] = pd.to_datetime(sales_copy['Full_Date'].astype(str))
-    #
-    
+
     # # Notebook ch3.1
     # Define a dictionary where keys are column names and values are data types
     data_types = {
@@ -251,21 +244,6 @@ def preprocess_markets(
 
     # Copy
     market_copy = data.copy()
-
-    # # This is already done
-    # # Function to parse date-like strings
-    # def parse_date(date_str):
-    #     month_str, year_str = date_str.split()
-    #     month_map = {
-    #         'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-    #         'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
-    #     }
-    #     month = month_map[month_str]
-    #     year = int(year_str)
-    #     return datetime(year, month, 1)
-
-    # # Apply the function to the 'date' column
-    # market_copy['Month Year'] = market_copy['Month Year'].apply(parse_date)
 
     categorical_dtypes = ['object','string','category']
     market_numerical_features = market_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
@@ -305,22 +283,6 @@ def market_merge_german_gdp(
     # Convert the 'DATE' column to datetime format and set it as the index
     gdp_copy.set_index('month_year', inplace=True)
 
-    # Set True/False whenever debug needed/or not
-    if True:
-        # Printing something from dataframe (usually columns)
-        # dummy_value is for checking pipelines sequence
-        pipeline_name = "market_merge_german_gdp"
-        f_verbose = True
-        debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
-
-    # Set True/False whenever debug needed/or not
-    if True:
-        # Printing something from dataframe (usually columns)
-        # dummy_value is for checking pipelines sequence
-        pipeline_name = "market_merge_german_gdp"
-        f_verbose = True
-        debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
-
     #the .resample() method is applied to the index column of the DataFrame, which must be a datetime-like index
     # Resample the data to monthly frequency and forward fill missing values
     gdp_monthly = pd.DataFrame(gdp_copy.resample('MS').ffill()['gdp'] / 3)
@@ -332,10 +294,12 @@ def market_merge_german_gdp(
 
     pass
 
-    # Printing something from dataframe (usually columns)
-    # dummy_value is for checking pipelines sequence
-    pipeline_name = "market_merge_german_gdp"
-    f_verbose = True
-    debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
+    # Set True/False whenever debug needed/or not
+    if True:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        pipeline_name = "market_merge_german_gdp"
+        f_verbose = True
+        debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
 
     return market_copy, dummy_value
