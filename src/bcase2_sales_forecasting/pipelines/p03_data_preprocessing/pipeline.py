@@ -8,18 +8,6 @@ from .nodes import preprocess_sales, preprocess_markets, market_merge_german_gdp
 def create_pipeline(**kwargs) -> Pipeline:
     return pipeline(
         [
-            # node(
-            #     func=ingest_sales,
-            #     inputs=["sales_raw_data", "parameters"],
-            #     outputs=["ingested_sales", "01_dummy"],
-            #     name="ingest_sales_node",
-            # ),
-            # node(
-            #     func=ingest_markets,
-            #     inputs=["market_raw_data", "parameters", "01_dummy"],
-            #     outputs=["ingested_markets", "02_dummy"],
-            #     name="ingest_markets_node",
-            # ),
             node(
                 func=preprocess_sales,
                 inputs=["ingested_sales", "parameters", "03_dummy"],
