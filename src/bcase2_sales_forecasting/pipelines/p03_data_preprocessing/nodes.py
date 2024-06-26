@@ -16,185 +16,6 @@ credentials = conf_loader["credentials"]
 
 logger = logging.getLogger(__name__)
 
-    
-# def build_expectation_suite(expectation_suite_name: str, feature_group: str) -> ExpectationSuite:
-#     """
-#     Builder used to retrieve an instance of the validation expectation suite.
-    
-#     Args:
-#         expectation_suite_name (str): A dictionary with the feature group name and the respective version.
-#         feature_group (str): Feature group used to construct the expectations.
-            
-#     Returns:
-#         ExpectationSuite: A dictionary containing all the expectations for this particular feature group.
-#     """
-        
-#     expectation_suite_bank = ExpectationSuite(
-#         expectation_suite_name=expectation_suite_name
-#     )
-
-#     # numerical features
-#     if feature_group == 'sales_numerical_features':
-        
-#         expectation_suite_bank.add_expectation(
-#             ExpectationConfiguration(
-#                 expectation_type="expect_table_column_count_to_equal",
-#                 kwargs={"value": 3},
-#             )
-#         )
-
-#         expectation_suite_bank.add_expectation(
-#             ExpectationConfiguration(
-#                 expectation_type="expect_column_values_to_be_of_type",
-#                 kwargs={"column": "sales_€", "type_": "float64"},
-#             )
-#         )
-
-#         pass
-
-#     if feature_group == "market_total_features":
-
-#         expected_column_names = market_columns_list_()
-
-#         # # to improve, we don't need unique values within columns
-#         # expectation_suite_bank.add_expectation(
-#         #     ExpectationConfiguration(
-#         #         # expectation_type="expect_table_columns_to_match_ordered_list",
-#         #         # kwargs={"column_list": expected_column_names},
-                
-#         #         expectation_type="expect_column_values_to_be_unique",
-#         #         kwargs={
-#         #                 "column_map": {
-#         #                     "numeric_columns": expected_column_names[2:],
-#         #                     # "categorical_columns": expected_column_names[1:]
-#         #                 }
-#         #         }
-#         #     )
-#         # )
-
-#         # expectation_suite_bank.add_expectation(
-#         #     ExpectationConfiguration(
-#         #         expectation_type="expect_table_column_count_to_equal",
-#         #         kwargs={"value": 49},
-#         #     )
-#         # )
-
-#         # # this intentionally left as example
-#         # expectation_suite_bank.add_expectation(
-#         #     ExpectationConfiguration(
-#         #         expectation_type="expect_column_distinct_values_to_be_in_set",
-#         #         kwargs={"column": "marital", "value_set": ['divorced', 'married','single']},
-#         #     )
-#         # )
-#         # Create the expectation
-
-#     # numerical features
-#     if feature_group == 'market_numerical_features':
-
-#         expectation_suite_bank.add_expectation(
-#             ExpectationConfiguration(
-#                 expectation_type="expect_table_column_count_to_equal",
-#                 kwargs={"value": 49},
-#             )
-#         )
-        
-#         expected_column_names = market_columns_list_()[2:]
-
-#         for col in expected_column_names:
-#             expectation_suite_bank.add_expectation(
-#                 ExpectationConfiguration(
-#                     expectation_type="expect_column_values_to_be_of_type",
-#                     kwargs={"column": col, "type_": "float64"},
-#                 )
-#             )
-
-#         # target
-#         if False:
-#             # if feature_group == 'target':
-                
-#             #     expectation_suite_bank.add_expectation(
-#             #         ExpectationConfiguration(
-#             #             expectation_type="expect_column_distinct_values_to_be_in_set",
-#             #             kwargs={"column": "y", "value_set": ['yes', 'no']},
-#             #         )
-#             #     ) 
-#             pass
-        
-    
-
-#     return expectation_suite_bank
-
-
-# def to_feature_store(
-#     data: pd.DataFrame,
-#     group_name: str,
-#     feature_group_version: int,
-#     description: str,
-#     group_description: dict,
-#     validation_expectation_suite: ExpectationSuite,
-#     credentials_input: dict
-# ):
-#     """
-#     This function takes in a pandas DataFrame and a validation expectation suite,
-#     performs validation on the data using the suite, and then saves the data to a
-#     feature store in the feature store.
-
-#     Args:
-#         data (pd.DataFrame): Dataframe with the data to be stored
-#         group_name (str): Name of the feature group.
-#         feature_group_version (int): Version of the feature group.
-#         description (str): Description for the feature group.
-#         group_description (dict): Description of each feature of the feature group. 
-#         validation_expectation_suite (ExpectationSuite): group of expectations to check data.
-#         SETTINGS (dict): Dictionary with the settings definitions to connect to the project.
-        
-#     Returns:
-#         A dictionary with the feature view version, feature view name and training dataset feature version.
-#     """
-
-#     # Connect to feature store.
-#     project = hopsworks.login(
-#         api_key_value=credentials_input["FS_API_KEY"], project=credentials_input["FS_PROJECT_NAME"]
-#     )
-#     feature_store = project.get_feature_store()
-
-#     # Create feature group.
-#     object_feature_group = feature_store.get_or_create_feature_group(
-#         name=group_name,
-#         version=feature_group_version,
-#         description= description,
-#         primary_key=["index"],
-#         event_time="month_year",
-#         online_enabled=False,
-#         expectation_suite=validation_expectation_suite,
-#     )
-#     # Upload data.
-#     object_feature_group.insert(
-#         features=data,
-#         overwrite=False,
-#         write_options={
-#             "wait_for_job": True,
-#         },
-#     )
-
-#     # Add feature descriptions.
-
-#     for description in group_description:
-#         object_feature_group.update_feature_description(
-#             description["name"], description["description"]
-#         )
-
-#     # Update statistics.
-#     object_feature_group.statistics_config = {
-#         "enabled": True,
-#         "histograms": True,
-#         "correlations": True,
-#     }
-#     object_feature_group.update_statistics_config()
-#     object_feature_group.compute_statistics()
-
-#     return object_feature_group
-
 
 def preprocess_sales(
         data: pd.DataFrame, 
@@ -211,7 +32,7 @@ def preprocess_sales(
     # Convert 'Full_Date' column to datetime already done while ingesting
 
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
-    sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum().reset_index()
+    sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
 
     # # Notebook ch3.1
     # Define a dictionary where keys are column names and values are data types
@@ -230,7 +51,7 @@ def preprocess_sales(
     pass
 
     # Set True/False whenever debug needed/or not
-    if True:
+    if parameters["debug_output"][pipeline_name]:
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
         f_verbose = True
@@ -266,7 +87,7 @@ def preprocess_markets(
     pass
 
     # Set True/False whenever debug needed/or not
-    if True:
+    if parameters["debug_output"][pipeline_name]:
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
         f_verbose = True
@@ -301,39 +122,15 @@ def market_merge_german_gdp(
     # Merge the datasets on the 'month_year' column
     market_copy = market_copy.merge(gdp_monthly.rename(columns={'gdp': 'german_gdp'}), on='month_year', how='left')
 
-    logger.info(f"The MARKET merged with GERMAN GDP. Processed market contains {len(market_copy.columns)} columns.")
-
-    # Removing correlated features
-
-    # Select only numerical features
-    numerical_features = market_copy.select_dtypes(include=[np.number])
-
-    # Calculate correlation matrix
-    correlation_matrix = numerical_features.corr().abs()
-
-    # Create a mask to select the upper triangle of correlation matrix
-    mask = np.triu(np.ones(correlation_matrix.shape), k=1).astype(bool)
-
-    # Select upper triangle of correlation matrix using the mask
-    upper_triangle = correlation_matrix.where(mask)
-
-    # Find index of feature columns with correlation greater than 0.95
-    to_drop = [column for column in upper_triangle.columns if any(upper_triangle[column] > 0.95)]
-    logger.info(f"{pipeline_name.upper()}. features to drop:")
-    logger.info(f"{to_drop}")
-
-    # Drop highly correlated features
-    market_copy = market_copy.drop(columns=to_drop)
-    
-    logger.info(f"The {'market dataset'.upper()} processing finished.")
+    logger.info(f"The MARKET data merged with GERMAN GDP. Processed market contains {len(market_copy.columns)} columns.")
 
     pass
 
     # Set True/False whenever debug needed/or not
-    if True:
+    if parameters["debug_output"][pipeline_name]:
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
-        f_verbose = False
+        f_verbose = True
         debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
 
     return market_copy, dummy_value

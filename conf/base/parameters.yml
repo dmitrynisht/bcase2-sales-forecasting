@@ -1,2 +1,8 @@
 to_feature_store: False
 random_state: 2024
+debug_output: {
+  "preprocess_sales": False,
+  "preprocess_markets": False,
+  "market_merge_german_gdp": False,
+  "market_features_selection": False,
+}

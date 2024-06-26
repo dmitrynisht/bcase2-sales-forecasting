@@ -91,3 +91,7 @@ preprocessed_markets:
 processed_markets:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/processed_markets.csv
+  load_args:
+    parse_dates: ['month_year']
+  save_args:
+    date_format: '%Y-%m'
