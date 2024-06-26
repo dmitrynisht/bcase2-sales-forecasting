@@ -31,6 +31,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
         "raw_data_unit_tests": raw_data_unit_tests,
         "raw_data_ingested": raw_data_ingested,
         "preprocess_data": preprocess_data,
-        "feature_selection": feature_selection
-        # "long_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data,
+        "feature_selection": feature_selection,
+        
+        "long_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data + feature_selection,
     }

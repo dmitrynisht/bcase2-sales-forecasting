@@ -227,6 +227,11 @@ def ingest_sales(
         Ingested sales
     """
 
+    logger = logging.getLogger(__name__)
+
+    pipeline_name = "ingest_sales"
+    logger.info(f"{pipeline_name}")
+
     sales_copy = data.copy()
 
     sales_copy = sales_columns_naming_(sales_copy)
@@ -283,11 +288,12 @@ def ingest_sales(
         # Reset the index to convert the default index to a column
         sales_copy = sales_copy.reset_index()
 
-    # Printing something from dataframe (usually columns)
     dummy_value = [0]
-    pipeline_name = "ingest_sales"
-    f_verbose = True
-    debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
+    if parameters["debug_output"][pipeline_name]:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        f_verbose = True
+        debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
 
     return sales_copy, dummy_value
 
@@ -304,6 +310,11 @@ def ingest_markets(
     Returns:
         Ingested market data
     """
+
+    logger = logging.getLogger(__name__)
+
+    pipeline_name = "ingest_markets"
+    logger.info(f"{pipeline_name}")
 
     market_copy = data.copy()
 
@@ -330,11 +341,8 @@ def ingest_markets(
     market_copy = columns_sanitation_(market_copy)
 
     # Define the list of columns and convert to float
-    market_copy.iloc[:, 1:] = market_copy.iloc[:, 1:].astype(float)
-
-    # Set True/False whenever debug needed/or not
-    if False:
-        print_to_debug_(market_copy, None)
+    # market_copy.iloc[:, 1:] = market_copy.iloc[:, 1:].astype(float) # this one generates depricatioin warning
+    market_copy[market_copy.columns[1:]] = market_copy[market_copy.columns[1:]].apply(lambda x: x.astype(float))
 
     logger.info(f"The MARKET dataset contains {len(market_copy.columns)} columns.")
     
@@ -392,11 +400,12 @@ def ingest_markets(
         # Reset the index to convert the default index to a column
         market_copy = market_copy.reset_index()
 
-    # Printing something from dataframe (usually columns)
-    # dummy_value is for checking pipelines sequence
-    pipeline_name = "ingest_markets"
-    f_verbose = True
-    debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
+    # Set True/False whenever debug needed/or not
+    if parameters["debug_output"][pipeline_name]:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        f_verbose = True
+        debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
 
     return market_copy, dummy_value
 
@@ -416,6 +425,9 @@ def ingest_gdp(
 
     logger = logging.getLogger(__name__)
 
+    pipeline_name = "ingest_german_gdp"
+    logger.info(f"{pipeline_name}")
+
     gdp_copy = data.copy()
 
     # Convert the 'DATE' column to datetime format and set it as the index
@@ -423,14 +435,6 @@ def ingest_gdp(
     gdp_copy.drop("Date", axis=1, inplace=True)
     
     gdp_copy = columns_sanitation_(gdp_copy)
-
-    # Set True/False whenever debug needed/or not
-    if False:
-        # Printing something from dataframe (usually columns)
-        # dummy_value is for checking pipelines sequence
-        pipeline_name = "ingest_german_gdp"
-        f_verbose = True
-        debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
 
     logger.info(f"The GERMAN GDP dataset contains {len(gdp_copy.columns)} columns.")
 
@@ -482,10 +486,9 @@ def ingest_gdp(
         gdp_copy = gdp_copy.reset_index()
 
     # Set True/False whenever debug needed/or not
-    if True:
+    if parameters["debug_output"][pipeline_name]:
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
-        pipeline_name = "ingest_german_gdp"
         f_verbose = True
         debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
 
