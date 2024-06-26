@@ -6,6 +6,7 @@ from kedro.framework.project import settings
 import hopsworks
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import pandas as pd
+import numpy as np
 from .utils import *
 
 conf_path = str(Path('') / settings.CONF_SOURCE)
@@ -202,6 +203,8 @@ def preprocess_sales(
     
     logger = logging.getLogger(__name__)
 
+    pipeline_name = "preprocess_sales"
+
     # Copy the DataFrame
     sales_copy = data.copy()
 
@@ -226,11 +229,12 @@ def preprocess_sales(
 
     pass
 
-    # Printing something from dataframe (usually columns)
-    # dummy_value is for checking pipelines sequence
-    pipeline_name = "preprocess_sales"
-    f_verbose = True
-    debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
+    # Set True/False whenever debug needed/or not
+    if True:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        f_verbose = True
+        debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
 
     return sales_copy, dummy_value
 
@@ -241,6 +245,8 @@ def preprocess_markets(
         dummy_value) -> pd.DataFrame:
     
     logger = logging.getLogger(__name__)
+
+    pipeline_name = "preprocess_markets"
 
     # Copy
     market_copy = data.copy()
@@ -259,11 +265,12 @@ def preprocess_markets(
 
     pass
 
-    # Printing something from dataframe (usually columns)
-    # dummy_value is for checking pipelines sequence
-    pipeline_name = "preprocess_markets"
-    f_verbose = True
-    debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
+    # Set True/False whenever debug needed/or not
+    if True:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        f_verbose = True
+        debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
 
     return market_copy, dummy_value
 
@@ -275,6 +282,10 @@ def market_merge_german_gdp(
         dummy_value) -> pd.DataFrame:
     
     logger = logging.getLogger(__name__)
+
+    pipeline_name = "market_merge_german_gdp"
+
+    logger.info(f"{pipeline_name} / {'market features selection'}")
 
     # Copy
     market_copy = market_data.copy()
@@ -292,14 +303,37 @@ def market_merge_german_gdp(
 
     logger.info(f"The MARKET merged with GERMAN GDP. Processed market contains {len(market_copy.columns)} columns.")
 
+    # Removing correlated features
+
+    # Select only numerical features
+    numerical_features = market_copy.select_dtypes(include=[np.number])
+
+    # Calculate correlation matrix
+    correlation_matrix = numerical_features.corr().abs()
+
+    # Create a mask to select the upper triangle of correlation matrix
+    mask = np.triu(np.ones(correlation_matrix.shape), k=1).astype(bool)
+
+    # Select upper triangle of correlation matrix using the mask
+    upper_triangle = correlation_matrix.where(mask)
+
+    # Find index of feature columns with correlation greater than 0.95
+    to_drop = [column for column in upper_triangle.columns if any(upper_triangle[column] > 0.95)]
+    logger.info(f"{pipeline_name.upper()}. features to drop:")
+    logger.info(f"{to_drop}")
+
+    # Drop highly correlated features
+    market_copy = market_copy.drop(columns=to_drop)
+    
+    logger.info(f"The {'market dataset'.upper()} processing finished.")
+
     pass
 
     # Set True/False whenever debug needed/or not
     if True:
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
-        pipeline_name = "market_merge_german_gdp"
-        f_verbose = True
-        debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
+        f_verbose = False
+        debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
 
     return market_copy, dummy_value
