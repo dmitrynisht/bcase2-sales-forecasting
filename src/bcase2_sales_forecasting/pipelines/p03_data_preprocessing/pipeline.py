@@ -1,8 +1,6 @@
 from kedro.pipeline import Pipeline, node, pipeline
 
 from .nodes import preprocess_sales, preprocess_markets, market_merge_german_gdp
-# from .nodes import ingest_sales, ingest_markets
-# from .nodes import create_model_input_table, preprocess_companies, preprocess_shuttles, preprocess_ibm
 
 
 def create_pipeline(**kwargs) -> Pipeline:
@@ -26,11 +24,5 @@ def create_pipeline(**kwargs) -> Pipeline:
                 outputs=["processed_markets", "06_dummy"],
                 name="processed_markets_node",
             ),
-            # node(
-            #     func=preprocess_ibm,
-            #     inputs="ibm_raw",
-            #     outputs="ibm_transformed",
-            #     name="preprocess_ibm_node",
-            # ),
         ]
     )
