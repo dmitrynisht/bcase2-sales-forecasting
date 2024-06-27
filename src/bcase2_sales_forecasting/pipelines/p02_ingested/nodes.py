@@ -286,7 +286,9 @@ def ingest_sales(
         assert len(columns) == 3, "Wrong data collected"
 
         # Reset the index to convert the default index to a column
-        sales_copy = sales_copy.reset_index()
+        # sales_copy = sales_copy.reset_index()
+        logger.info(f"{sales_copy.head(20)}")
+        logger.info(f"{'#'*30 + ' sales_copy '.upper() + '#'*30}")
 
     dummy_value = [0]
     if parameters["debug_output"][pipeline_name]:

@@ -14,7 +14,33 @@ credentials = conf_loader["credentials"]
 
 logger = logging.getLogger(__name__)
 
+
+def sales_features_selection(
+        sales_data: pd.DataFrame,
+        parameters: Dict[str, Any],
+        dummy_value) -> pd.DataFrame:
     
+    logger = logging.getLogger(__name__)
+
+    pipeline_name = "sales_features_selection"
+
+    logger.info(f"{pipeline_name}")
+
+    # Copy
+    sales_copy = sales_data.copy()
+
+    pass
+
+    # Set True/False whenever debug needed/or not
+    if parameters["debug_output"][pipeline_name]:
+        # Printing something from dataframe (usually columns)
+        # dummy_value is for checking pipelines sequence
+        f_verbose = True
+        debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
+
+    return sales_copy
+
+
 def market_features_selection(
         market_data: pd.DataFrame,
         parameters: Dict[str, Any],
@@ -24,7 +50,7 @@ def market_features_selection(
 
     pipeline_name = "market_features_selection"
 
-    logger.info(f"{pipeline_name} / {'market features selection'}")
+    logger.info(f"{pipeline_name}")
 
     # Copy
     market_copy = market_data.copy()

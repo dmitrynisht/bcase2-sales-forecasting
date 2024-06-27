@@ -6,8 +6,9 @@ from kedro.framework.project import settings
 import hopsworks
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import pandas as pd
-import numpy as np
 from .utils import *
+from colorama import Style
+
 
 conf_path = str(Path('') / settings.CONF_SOURCE)
 conf_loader = OmegaConfigLoader(conf_source=conf_path)
@@ -30,6 +31,12 @@ def preprocess_sales(
     sales_copy = data.copy()
 
     # Convert 'Full_Date' column to datetime already done while ingesting
+    
+    # HERE IS A PROBLEM: I DON'T KNOW WHY, BUT IN JUPYTER FILE THE OUTPUT OF THIS LINE OF CODE GENERATES 620 ROWS
+    # THE OUTPUT OF THIS LINE OF CODE IN THIS PIPELINE IS 790 ROWS
+    # AND PERHAPS BECAUSE OF THAT IN THE normality_results WE DON'T HAVE ANY NORMALLY DISTRIBUTED GROUP
+    # BUT IN JUPYTER FILE WE HAVE INITIALLY GROUPS 3, 5, 6 NORMALLY DISTRIBUTED, AND AFTER REMOVING OUTLIRES ALSO GROUP 1
+    # WE ARE LIVING AS IS BUT TO BE INVESTIGATED WHY THE PIPELINE IS CORRUPTING THE DATA
 
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
     sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
@@ -37,7 +44,7 @@ def preprocess_sales(
     # # Notebook ch3.1
     # Define a dictionary where keys are column names and values are data types
     data_types = {
-        # 'full_date': 'datetime64[ns]',
+        'full_date': 'datetime64[ns]',
         # 'gck': 'object',
         'sales_eur': 'float32'
     }
@@ -47,6 +54,23 @@ def preprocess_sales(
         sales_copy[col] = sales_copy[col].astype(dtype)
 
     logger.info(f"The sales dataset columns convertion finished.")
+
+    # 3.5 OUTLIERS. z-score
+
+    # Apply the function to check normality for each product
+    normality_results = sales_copy.groupby('gck')['sales_eur'].apply(check_normality)
+
+    # Print the results
+    for product, is_normal in normality_results.items():
+        if is_normal:
+            logger.info(f"Product {product}: {Style.BRIGHT}Normally Distributed{Style.RESET_ALL}")
+        else:
+            logger.info(f"Product {product}: Not Normally Distributed")
+
+    logger.info(f"normality results:\n{normality_results}")
+
+    # Create an empty list to store outlier indices
+    outlier_indices = []
 
     pass
 
