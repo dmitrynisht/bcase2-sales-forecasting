@@ -9,3 +9,6 @@ debug_output: {
   "market_merge_german_gdp": False,
   "market_features_selection": False,
 }
+
+validation_fraction: 0.8
+target_column: 'Sales €'
