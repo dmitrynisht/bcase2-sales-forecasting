@@ -118,3 +118,33 @@ markets_feature_selection:
 #   dataset:
 #     type: pickle.PickleDataset
 #     filepath: data/06_models/best_cols.pkl
+
+dev_sales_p1:
+  type: pandas.CSVDataset
+  filepath: data/04_feature/DEV_sales_p1.csv
+  load_args:
+    parse_dates: ['Full_Date']
+  save_args:
+    date_format: '%d-%m-%Y'
+
+X_train_data:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/X_train.csv
+
+y_train_data:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/y_train.csv
+
+X_val_data:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/X_val.csv
+
+y_val_data:
+  type: pandas.CSVDataset
+  filepath: data/05_model_input/y_val.csv 
+
+champion_model:
+  type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
+  dataset:
+    type: pickle.PickleDataset
+    filepath: data/06_models/champion_model.pkl
