@@ -28,7 +28,7 @@ def check_normality(data: pd.Series):
 def detect_outliers_zscore(data):
     """Function to identify outliers using z-score
     """
-    print(type(data))
+    print("detect_outliers_zscore, data is of type:", type(data))
     threshold = 3
     mean = np.mean(data)
     std_dev = np.std(data)

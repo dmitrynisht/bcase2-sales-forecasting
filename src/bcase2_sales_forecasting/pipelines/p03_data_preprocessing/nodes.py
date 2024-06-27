@@ -69,9 +69,22 @@ def preprocess_sales(
 
     logger.info(f"normality results:\n{normality_results}")
 
+    # Filter products with Normal Distribution
+    # sales_normal = sales_copy.query('GCK == "#3" | GCK == "#5" | GCK == "#6"') # these were expected to be normally distributed
+    is_normal_list = [product for product, is_normal in normality_results.items() if is_normal]
+    sales_normal = sales_copy[sales_copy['gck'].isin(is_normal_list)]
+
     # Create an empty list to store outlier indices
     outlier_indices = []
 
+    # Iterate over groups
+    for group_name, group_data in sales_normal.groupby('gck')['sales_eur']:
+        print("Iterate over groups, group_data.pipe is of type:", type(group_data.pipe))
+        # Detect outliers for the current group
+        outliers_group = group_data.pipe(detect_outliers_zscore)
+        # Append outlier indices to the list
+        outlier_indices.extend(group_data[outliers_group].index)
+        
     pass
 
     # Set True/False whenever debug needed/or not
