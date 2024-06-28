@@ -27,7 +27,9 @@ def model_train(champion_model,
     """Trains a model on the given data and saves it to the given model path.
 
     Args:
-    --
+    --  
+        champion_model: champion model to train.
+        champion_model_parameters (Dict): Fit parameter of champion model
         X_train (pd.DataFrame): Training features.
         X_val (pd.DataFrame): Test features.
         y_train (pd.DataFrame): Training target.
@@ -56,6 +58,7 @@ def model_train(champion_model,
 
         # Reinitialize the model
         if class_name == 'NeuralProphet':
+            set_random_seed(parameters['random_state'])
             model = NeuralProphet()
         elif class_name == 'Prophet':
             model = Prophet()
@@ -66,7 +69,7 @@ def model_train(champion_model,
         y_full = pd.concat([y_train, y_val], axis=0).reset_index(drop=True)
 
         df_full = pd.DataFrame({
-                                'ds': X_full['Full_Date'],
+                                'ds': X_full[parameters['date_column']],
                                 'y': y_full[parameters['target_column']]
                                 })
 
@@ -76,9 +79,6 @@ def model_train(champion_model,
 
         # saving results in dict
         results_dict['model'] = class_name
-        # results_dict['train_score'] = acc_train
-        # results_dict['test_score'] = acc_test
-        print('RESULTS: ', results_dict)
 
         # logging in mlflow
         run_id = mlflow.last_active_run().info.run_id
