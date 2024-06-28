@@ -4,7 +4,7 @@ debug_output: {
   "ingest_sales": False,
   "ingest_markets": False,
   "ingest_german_gdp": False,
-  "preprocess_sales": False,
+  "preprocess_sales": True,
   "preprocess_markets": False,
   "market_merge_german_gdp": False,
   "market_features_selection": False,
