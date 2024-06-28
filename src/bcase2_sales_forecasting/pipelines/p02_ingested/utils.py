@@ -16,16 +16,16 @@ def debug_on_success_(data: pd.DataFrame, dummy_value: int, pipeline_name: str =
     return
 
 
-def print_to_debug_(data: pd.DataFrame, dummy_value: Any) -> None:
+def print_to_debug_(data: pd.DataFrame) -> None:
     
     data_copy = data.copy()
     headers = data_copy.columns.to_list()
     valid_headers = market_columns_list_()
-    print(f'{30*"#"} {"first 5 columns of market_data".upper()} {30*"#"}')
+    print(f'{30*"#"} {"first 5 columns of data".upper()} {30*"#"}')
     print(headers[:5])
     print(f'{30*"#"} {"first 5 columns of validation_columns_list_".upper()} {30*"#"}')
     print(valid_headers[:5])
-    print(f'{30*"#"} {"last 5 columns of market_data".upper()} {30*"#"}')
+    print(f'{30*"#"} {"last 5 columns of data".upper()} {30*"#"}')
     print(headers[-5:])
     print(f'{30*"#"} {"last 5 columns of validation_columns_list_".upper()} {30*"#"}')
     print(valid_headers[-5:])
