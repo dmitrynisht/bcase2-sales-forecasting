@@ -7,6 +7,7 @@ import hopsworks
 from great_expectations.core import ExpectationSuite, ExpectationConfiguration
 import pandas as pd
 from .utils import *
+import locale
 
 conf_path = str(Path('') / settings.CONF_SOURCE)
 conf_loader = OmegaConfigLoader(conf_source=conf_path)
@@ -495,3 +496,78 @@ def ingest_gdp(
         debug_on_success_(gdp_copy, dummy_value, pipeline_name, f_verbose)
 
     return gdp_copy, dummy_value
+
+
+# def prepare_test_data(file_path: str) -> pd.DataFrame:
+
+#     # Set the locale to German
+#     locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
+
+#     # Read the CSV file
+#     df = pd.read_csv(file_path, delimiter=';', decimal=',')
+    
+#     # Rename the columns to have a consistent format
+#     df.columns = ['Month Year', 'Mapped_GCK', 'Sales_EUR']
+    
+#     # Convert 'Month Year' to datetime format
+#     df['full_date'] = pd.to_datetime(df['Month Year'], format='%b %y')
+    
+#     # Keep only the necessary columns
+#     df = df[['full_date', 'Sales_EUR']]
+    
+#     # Convert 'full_date' to the desired format 'yyyy-mm-dd'
+#     df['full_date'] = df['full_date'].dt.strftime('%Y-%m-%d')
+    
+#     # Rename the column 'Sales_EUR' to 'Sales €'
+#     df.rename(columns={'Sales_EUR': 'Sales €'}, inplace=True)
+    
+#     return df
+
+
+def ingest_test_data(
+    data: pd.DataFrame,
+    parameters: Dict[str, Any]) -> pd.DataFrame:
+
+    """Ingest the test sales data.
+
+    Args:
+        data: Raw test sales.
+    Returns:
+        Ingested test sales
+    """
+
+    logger = logging.getLogger(__name__)
+
+    pipeline_name = "ingest_test_data"
+    logger.info(f"{pipeline_name}")
+
+    # Quick check for right column count
+    assert len(data.columns) == 3, "Wrong data collected for Test Set."
+
+    # Set the locale to German
+    locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')
+
+    test_data = data.copy()
+
+    # Rename the columns to have a consistent format
+    test_data.columns = ['Month Year', 'GCK', 'Sales_EUR']
+
+    # Filter for target product
+    test_data = test_data[test_data.GCK == parameters['target_product']]
+    
+    # Convert 'Month Year' to datetime format
+    test_data['full_date'] = pd.to_datetime(test_data['Month Year'], format='%b %y')
+    
+    # Keep only the necessary columns
+    test_data = test_data[['full_date', 'Sales_EUR']]
+    
+    # Convert 'full_date' to the desired format 'yyyy-mm-dd'
+    test_data['full_date'] = test_data['full_date'].dt.strftime('%Y-%m-%d')
+
+
+    logger.info(f"The Test dataset for product {parameters['target_product']} contains {len(test_data.columns)} columns.")
+
+    # Reset the index to convert the default index to a column
+    test_data = test_data.reset_index()
+
+    return test_data
