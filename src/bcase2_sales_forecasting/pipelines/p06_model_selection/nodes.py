@@ -1,4 +1,3 @@
-
 import pandas as pd
 import logging
 from typing import Dict, Tuple, Any
@@ -12,9 +11,6 @@ warnings.filterwarnings("ignore", category=Warning)
 from neuralprophet import NeuralProphet
 from neuralprophet import set_random_seed
 from prophet import Prophet
-
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score
 
 import mlflow
 
@@ -50,6 +46,7 @@ def model_selection(X_train: pd.DataFrame,
     }
 
     initial_results = {}   
+    model_parameters = {} 
 
     with open('conf/local/mlflow.yml') as f:
         experiment_name = yaml.load(f, Loader=yaml.loader.SafeLoader)['tracking']['experiment']['name']
@@ -64,8 +61,9 @@ def model_selection(X_train: pd.DataFrame,
         with mlflow.start_run(experiment_id=experiment_id, nested=True):
             mlflow.sklearn.autolog(log_model_signatures=True, log_input_examples=True)
 
+
             if model_name == 'NeuralProphet':
-                model, model_metrics, model_rmse_val_last_epoch = train_neural_prophet(model=model,
+                model, model_rmse_val_last_epoch, fit_params = train_neural_prophet(model=model,
                                                                                        X_train=X_train,
                                                                                        X_val=X_val,
                                                                                        y_train=y_train,
@@ -73,7 +71,7 @@ def model_selection(X_train: pd.DataFrame,
                                                                                        parameters=parameters)
 
             elif model_name == 'FB_Prophet':
-                model, model_metrics, model_rmse_val_last_epoch = train_fb_prophet(model=model,
+                model, model_rmse_val_last_epoch, fit_params = train_fb_prophet(model=model,
                                                                                        X_train=X_train,
                                                                                        X_val=X_val,
                                                                                        y_train=y_train,
@@ -84,6 +82,7 @@ def model_selection(X_train: pd.DataFrame,
 
             # save results of each model
             initial_results[model_name] = model_rmse_val_last_epoch
+            model_parameters[model_name] = fit_params
 
             run_id = mlflow.last_active_run().info.run_id
             logger.info(f"Logged model : {model_name} in run {run_id}")
@@ -92,10 +91,11 @@ def model_selection(X_train: pd.DataFrame,
     print('BEST_RESULTS: ', initial_results)
     best_model_name = min(initial_results, key=initial_results.get)
     best_model = models_dict[best_model_name]
+    best_model_parameters = model_parameters[best_model_name] 
 
     logger.info(f"Best model is {best_model_name} with score {initial_results[best_model_name]}")
 
-    return best_model
+    return best_model, best_model_parameters
 
     # logger.info('Starting second step of model selection : Hyperparameter tuning')
 
@@ -135,13 +135,26 @@ def train_neural_prophet(model,
                             'y': y_val[parameters['target_column']]
                             })
     
+     # Define fit parameters
+    fit_params = {
+        'freq': 'M',
+        'batch_size': 4,
+        'metrics': 'RMSE',
+        'progress': 'print',
+        'epochs': 20
+    }
+
+    # Log the fit parameters
+    mlflow.log_params(fit_params)
+    
     set_random_seed(parameters['random_state'])
-    model_metrics = model.fit(df_train, freq='M', validation_df=df_val, batch_size=4, metrics='RMSE', progress='print', epochs=20)
-    print('Model_type: ', type(model) )
+    model_metrics = model.fit(df_train, freq=fit_params['freq'], validation_df=df_val,
+                               batch_size=fit_params['batch_size'], metrics=fit_params['metrics'],
+                               progress=fit_params['progress'], epochs=fit_params['epochs'])
 
     model_rmse_val_last_epoch = model_metrics['RMSE_val'].iloc[-1]
 
-    return model, model_metrics, model_rmse_val_last_epoch
+    return model, model_rmse_val_last_epoch, fit_params
 
 def train_fb_prophet(model,
                 X_train: pd.DataFrame, 
@@ -160,6 +173,14 @@ def train_fb_prophet(model,
                         'ds': X_val['Full_Date'],
                         'y': y_val[parameters['target_column']]
                         })
+    
+    # Define fit parameters
+    fit_params = {
+    }
+
+    # Log the fit parameters
+    mlflow.log_params(fit_params)
+
     model.fit(df_train)
 
     # Make future dataframe including validation period
@@ -177,4 +198,4 @@ def train_fb_prophet(model,
 
     results = pd.concat([forecast[['ds', 'yhat']], future], axis=1)
 
-    return model, results, rmse_val
+    return model, rmse_val, fit_params
