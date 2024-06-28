@@ -48,6 +48,12 @@ market_raw_data:
     engine: openpyxl
     header: null
 
+test_raw_data:
+  type: pandas.CSVDataset
+  filepath: data/01_raw/Test_Answers.csv
+  load_args:
+    sep: ';'
+
 ingested_sales:
   type: pandas.CSVDataset
   filepath: data/02_intermediate/ingested_sales.csv
@@ -71,6 +77,14 @@ ingested_german_gdp:
     parse_dates: ['month_year']
   # save_args:
   #   date_format: '%Y-%m'
+
+ingested_test_data:
+  type: pandas.CSVDataset
+  filepath: data/02_intermediate/ingested_test_data.csv
+  load_args:
+    parse_dates: ['full_date']
+  save_args:
+    date_format: '%d-%m-%Y'
 
 preprocessed_sales:
   type: pandas.CSVDataset
@@ -125,3 +139,21 @@ champion_model:
   dataset:
     type: pickle.PickleDataset
     filepath: data/06_models/champion_model.pkl
+
+champion_model_parameters:
+  type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
+  dataset:
+    type: json.JSONDataset
+    filepath: data/06_models/champion_model_parameters.json
+
+production_model:
+  type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
+  dataset:
+    type: pickle.PickleDataset
+    filepath: data/06_models/production_model.pkl
+
+production_model_parameters:
+  type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
+  dataset:
+    type: json.JSONDataset
+    filepath: data/06_models/production_model_parameters.json
