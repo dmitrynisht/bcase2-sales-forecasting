@@ -11,6 +11,7 @@ from bcase2_sales_forecasting.pipelines import (
     p05_split_train as split_data_pipeline,
     p06_model_selection as model_selection_pipeline,
     p07_model_train as model_train_pipeline,
+    p08_model_predict as model_predict_pipeline,
 #
 )
 
@@ -32,6 +33,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
     split_data = split_data_pipeline.create_pipeline()
     model_selection = model_selection_pipeline.create_pipeline()
     model_train = model_train_pipeline.create_pipeline()
+    model_predict = model_predict_pipeline.create_pipeline()
 
     return {
         "raw_data_unit_tests": raw_data_unit_tests,
@@ -41,6 +43,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
         "split_data":  split_data,
         "model_selection": model_selection,
         "model_train": model_train,
+        "model_predict": model_predict,
         
         "long_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data + feature_selection,
     }
