@@ -38,52 +38,52 @@ def preprocess_sales(
     # BUT IN JUPYTER FILE WE HAVE INITIALLY GROUPS 3, 5, 6 NORMALLY DISTRIBUTED, AND AFTER REMOVING OUTLIRES ALSO GROUP 1
     # WE ARE LIVING AS IS BUT TO BE INVESTIGATED WHY THE PIPELINE IS CORRUPTING THE DATA
 
-    # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
-    sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
+    # # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
+    # sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
 
-    # # Notebook ch3.1
-    # Define a dictionary where keys are column names and values are data types
-    data_types = {
-        'full_date': 'datetime64[ns]',
-        # 'gck': 'object',
-        'sales_eur': 'float32'
-    }
+    # # # Notebook ch3.1
+    # # Define a dictionary where keys are column names and values are data types
+    # data_types = {
+    #     'full_date': 'datetime64[ns]',
+    #     # 'gck': 'object',
+    #     'sales_eur': 'float32'
+    # }
     
-    # Apply data types to the DataFrame
-    for col, dtype in data_types.items():
-        sales_copy[col] = sales_copy[col].astype(dtype)
+    # # Apply data types to the DataFrame
+    # for col, dtype in data_types.items():
+    #     sales_copy[col] = sales_copy[col].astype(dtype)
 
-    logger.info(f"The sales dataset columns convertion finished.")
+    # logger.info(f"The sales dataset columns convertion finished.")
 
-    # 3.5 OUTLIERS. z-score
+    # # 3.5 OUTLIERS. z-score
 
-    # Apply the function to check normality for each product
-    normality_results = sales_copy.groupby('gck')['sales_eur'].apply(check_normality)
+    # # Apply the function to check normality for each product
+    # normality_results = sales_copy.groupby('gck')['sales_eur'].apply(check_normality)
 
-    # Print the results
-    for product, is_normal in normality_results.items():
-        if is_normal:
-            logger.info(f"Product {product}: {Style.BRIGHT}Normally Distributed{Style.RESET_ALL}")
-        else:
-            logger.info(f"Product {product}: Not Normally Distributed")
+    # # Print the results
+    # for product, is_normal in normality_results.items():
+    #     if is_normal:
+    #         logger.info(f"Product {product}: {Style.BRIGHT}Normally Distributed{Style.RESET_ALL}")
+    #     else:
+    #         logger.info(f"Product {product}: Not Normally Distributed")
 
-    logger.info(f"normality results:\n{normality_results}")
+    # logger.info(f"normality results:\n{normality_results}")
 
-    # Filter products with Normal Distribution
-    # sales_normal = sales_copy.query('GCK == "#3" | GCK == "#5" | GCK == "#6"') # these were expected to be normally distributed
-    is_normal_list = [product for product, is_normal in normality_results.items() if is_normal]
-    sales_normal = sales_copy[sales_copy['gck'].isin(is_normal_list)]
+    # # Filter products with Normal Distribution
+    # # sales_normal = sales_copy.query('GCK == "#3" | GCK == "#5" | GCK == "#6"') # these were expected to be normally distributed
+    # is_normal_list = [product for product, is_normal in normality_results.items() if is_normal]
+    # sales_normal = sales_copy[sales_copy['gck'].isin(is_normal_list)]
 
-    # Create an empty list to store outlier indices
-    outlier_indices = []
+    # # Create an empty list to store outlier indices
+    # outlier_indices = []
 
-    # Iterate over groups
-    for group_name, group_data in sales_normal.groupby('gck')['sales_eur']:
-        print("Iterate over groups, group_data.pipe is of type:", type(group_data.pipe))
-        # Detect outliers for the current group
-        outliers_group = group_data.pipe(detect_outliers_zscore)
-        # Append outlier indices to the list
-        outlier_indices.extend(group_data[outliers_group].index)
+    # # Iterate over groups
+    # for group_name, group_data in sales_normal.groupby('gck')['sales_eur']:
+    #     print("Iterate over groups, group_data.pipe is of type:", type(group_data.pipe))
+    #     # Detect outliers for the current group
+    #     outliers_group = group_data.pipe(detect_outliers_zscore)
+    #     # Append outlier indices to the list
+    #     outlier_indices.extend(group_data[outliers_group].index)
         
     pass
 
