@@ -11,5 +11,6 @@ debug_output: {
 }
 
 validation_fraction: 0.8
+date_column: 'full_date'
 target_column: 'Sales_EUR'
 target_product: '#1'
