@@ -144,5 +144,6 @@ def compute_sales_lag_features(
     #TODO: Create specific nodes in pipeline to get corr and top feats
     sales_p1 = sales_p1[list(set(['sales_eur'] + get_highly_correlated_features(sales_p1) + get_top_10_features(sales_p1)))]
     sales_p1.dropna(inplace=True)
+    sales_p1.reset_index(inplace=True)
 
     return [sales_p1]

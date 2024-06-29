@@ -20,7 +20,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             # ),
             node(
                 func=compute_sales_lag_features,
-                inputs=['preprocessed_sales', 'markets_feature_selection', 'parameters'],
+                inputs=['preprocessed_sales', 'markets_best_features', 'parameters'],
                 outputs=["features_with_sales_lag"],
                 name="compute_sales_lag_features",
             )
