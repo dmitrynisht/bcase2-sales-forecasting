@@ -117,8 +117,6 @@ sales_feature_selection:
 features_with_sales_lag:
   type: pandas.CSVDataset
   filepath: data/03_primary/features_with_sales_lag.csv
-  load_args:
-    parse_dates: ['full_date']
   save_args:
     date_format: '%d-%m-%Y'
 
@@ -136,14 +134,6 @@ markets_feature_selection:
 #   dataset:
 #     type: pickle.PickleDataset
 #     filepath: data/06_models/best_cols.pkl
-
-dev_sales_p1:
-  type: pandas.CSVDataset
-  filepath: data/04_feature/DEV_sales_p1.csv
-  load_args:
-    parse_dates: ['full_date']
-  save_args:
-    date_format: '%d-%m-%Y'
 
 X_train_data:
   type: pandas.CSVDataset
