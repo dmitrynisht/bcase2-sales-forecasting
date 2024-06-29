@@ -25,12 +25,12 @@ handlers:
     encoding: utf8
     delay: True
 
-  rich:
-    class: kedro.logging.RichHandler
-    rich_tracebacks: True
-    # Advance options for customisation.
-    # See https://docs.kedro.org/en/stable/logging/logging.html#project-side-logging-configuration
-    # tracebacks_show_locals: False
+  # rich:
+  #   class: kedro.logging.RichHandler
+  #   rich_tracebacks: False
+  #   # Advance options for customisation.
+  #   # See https://docs.kedro.org/en/stable/logging/logging.html#project-side-logging-configuration
+  #   # tracebacks_show_locals: False
 
 loggers:
   kedro:
@@ -40,4 +40,5 @@ loggers:
     level: INFO
 
 root:
-  handlers: [rich, info_file_handler]
+  handlers: [console]
+  # handlers: [rich, info_file_handler]

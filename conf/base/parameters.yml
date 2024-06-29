@@ -1,7 +1,7 @@
 to_feature_store: False
 random_state: 2024
 debug_output: {
-  "ingest_sales": False,
+  "ingest_sales": True,
   "ingest_markets": False,
   "ingest_german_gdp": False,
   "preprocess_sales": True,
