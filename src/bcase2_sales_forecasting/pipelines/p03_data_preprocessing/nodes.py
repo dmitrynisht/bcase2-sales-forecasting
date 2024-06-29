@@ -31,6 +31,18 @@ def preprocess_sales(
     sales_copy = data.copy()
 
     # Convert 'Full_Date' column to datetime already done while ingesting
+    sales_copy['full_date'] = pd.to_datetime(sales_copy['full_date'], dayfirst=True)
+
+    # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
+    sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
+
+    # # Notebook ch3.1
+    # Define a dictionary where keys are column names and values are data types
+    data_types = {
+        # 'full_date': 'datetime64[ns]',
+        # 'gck': 'object',
+        'sales_eur': 'float32'
+    }
     
     # HERE IS A PROBLEM: I DON'T KNOW WHY, BUT IN JUPYTER FILE THE OUTPUT OF THIS LINE OF CODE GENERATES 620 ROWS
     # THE OUTPUT OF THIS LINE OF CODE IN THIS PIPELINE IS 790 ROWS

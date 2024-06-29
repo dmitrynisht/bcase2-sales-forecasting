@@ -247,7 +247,7 @@ def ingest_sales(
 
     logger.info(f"The SALES dataset contains {len(sales_copy.columns)} columns.")
 
-    if parameters["to_feature_store"]:
+    if parameters.get("to_feature_store"):
 
         categorical_dtypes = ['object','string','category']
         sales_numerical_features = sales_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
@@ -292,7 +292,7 @@ def ingest_sales(
         logger.info(f"{'#'*30 + ' sales_copy '.upper() + '#'*30}")
 
     dummy_value = [0]
-    if parameters["debug_output"][pipeline_name]:
+    if parameters.get("debug_output") and parameters["debug_output"].get(pipeline_name):
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
         f_verbose = True
@@ -404,7 +404,7 @@ def ingest_markets(
         market_copy = market_copy.reset_index()
 
     # Set True/False whenever debug needed/or not
-    if parameters["debug_output"][pipeline_name]:
+    if parameters.get("debug_output") and parameters["debug_output"].get(pipeline_name):
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
         f_verbose = True
@@ -489,7 +489,7 @@ def ingest_gdp(
         gdp_copy = gdp_copy.reset_index()
 
     # Set True/False whenever debug needed/or not
-    if parameters["debug_output"][pipeline_name]:
+    if parameters.get("debug_output") and parameters["debug_output"].get(pipeline_name):
         # Printing something from dataframe (usually columns)
         # dummy_value is for checking pipelines sequence
         f_verbose = True
