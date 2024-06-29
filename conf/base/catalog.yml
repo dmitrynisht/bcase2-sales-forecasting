@@ -110,6 +110,14 @@ processed_markets:
   save_args:
     date_format: '%Y-%m'
 
+features_with_sales_lag:
+  type: pandas.CSVDataset
+  filepath: data/03_primary/features_with_sales_lag.csv
+  load_args:
+    parse_dates: ['full_date']
+  save_args:
+    date_format: '%d-%m-%Y'
+
 dev_sales_p1:
   type: pandas.CSVDataset
   filepath: data/04_feature/DEV_sales_p1.csv
