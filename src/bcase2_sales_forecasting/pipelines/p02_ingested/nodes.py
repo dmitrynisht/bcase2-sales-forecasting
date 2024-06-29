@@ -239,6 +239,7 @@ def ingest_sales(
 
     # Format data
     sales_copy = full_date_col_(sales_copy)
+    logger.info(f"{sales_copy.head(5)}")
 
     # Format sales
     sales_copy = sales_col_(sales_copy)
@@ -288,7 +289,7 @@ def ingest_sales(
 
         # Reset the index to convert the default index to a column
         # sales_copy = sales_copy.reset_index()
-        logger.info(f"{sales_copy.head(20)}")
+        logger.info(f"{sales_copy.head(5)}")
         logger.info(f"{'#'*30 + ' sales_copy '.upper() + '#'*30}")
 
     dummy_value = [0]
