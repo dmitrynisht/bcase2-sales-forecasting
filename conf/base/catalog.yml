@@ -110,6 +110,10 @@ processed_markets:
   save_args:
     date_format: '%Y-%m'
 
+sales_feature_selection:
+  type: pandas.CSVDataset
+  filepath: data/04_feature/sales_best_features.csv
+
 features_with_sales_lag:
   type: pandas.CSVDataset
   filepath: data/03_primary/features_with_sales_lag.csv
@@ -117,6 +121,21 @@ features_with_sales_lag:
     parse_dates: ['full_date']
   save_args:
     date_format: '%d-%m-%Y'
+
+markets_feature_selection:
+  type: pandas.CSVDataset
+  filepath: data/04_feature/markets_best_features.csv
+  load_args:
+    parse_dates: ['month_year']
+  save_args:
+    date_format: '%Y-%m'
+
+# # Replace when ready
+# markets_feature_selection:
+#   type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
+#   dataset:
+#     type: pickle.PickleDataset
+#     filepath: data/06_models/best_cols.pkl
 
 dev_sales_p1:
   type: pandas.CSVDataset

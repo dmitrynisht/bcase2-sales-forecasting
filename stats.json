@@ -1,1 +1,1 @@
-{"sales_raw_data": {"rows": 9802, "columns": 3, "file_size": 187287}, "ingested_sales": {"rows": 9802, "columns": 4, "file_size": 250678}, "market_raw_data": {"rows": 222, "columns": 48, "file_size": 165233}, "ingested_markets": {"rows": 219, "columns": 49, "file_size": 189928}, "german_gdp_raw_data": {"rows": 80, "columns": 2, "file_size": 1695}, "ingested_german_gdp": {"rows": 80, "columns": 3, "file_size": 1937}}
+{"ingested_sales": {"rows": 9802, "columns": 3, "file_size": 202772}, "preprocessed_sales": {"rows": 9802, "columns": 3, "file_size": 202772}}

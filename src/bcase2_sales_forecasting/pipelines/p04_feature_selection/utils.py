@@ -135,3 +135,4 @@ def add_sales_lags(lag_data):
         lag_data[f'sales_eur_LAG{lag}'] = lag_data['sales_eur'].shift(lag)
     
     return lag_data
+  
