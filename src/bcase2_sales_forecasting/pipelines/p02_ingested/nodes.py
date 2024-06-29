@@ -558,6 +558,8 @@ def ingest_test_data(
     # Convert 'Month Year' to datetime format
     test_data['full_date'] = pd.to_datetime(test_data['Month Year'], format='%b %y')
     
+    test_data['Sales_EUR'] = test_data['Sales_EUR'].astype(float)
+    
     # Keep only the necessary columns
     test_data = test_data[['full_date', 'Sales_EUR']]
     

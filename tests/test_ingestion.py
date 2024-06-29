@@ -1,5 +1,5 @@
 import pandas as pd
-from src.bcase2_sales_forecasting.pipelines.p02_ingested.nodes import ingest_sales, ingest_markets, ingest_gdp
+from src.bcase2_sales_forecasting.pipelines.p02_ingested.nodes import ingest_sales, ingest_markets, ingest_gdp, ingest_test_data
 
 def test_ingest_sales():
     sample_data = pd.DataFrame({
@@ -11,7 +11,7 @@ def test_ingest_sales():
 
     assert isinstance(result, pd.DataFrame)
 
-    expected_columns = ['index', 'full_date', 'gck', 'sales_eur']
+    expected_columns = ['full_date', 'gck', 'sales_eur']
     assert set(result.columns.to_list()) == set(expected_columns)
 
     assert result['full_date'].dtype == 'datetime64[ns]'
@@ -92,3 +92,22 @@ def test_ingest_gdp():
     assert isinstance(result, pd.DataFrame)
     assert result['month_year'].dtype == 'datetime64[ns]'
     assert set(result.columns.to_list()) == set(expected_columns)
+
+
+def test_ingest_test_data():
+    sample_data = pd.DataFrame({
+        'Month Year': ['Mai 22', 'Okt 22', 'Dez 22'],
+        'Mapped_GCK': ["#1", "#1", "#3"],
+        'Sales_EUR': ["105.5", "200", "300.5"]
+    })
+
+    result = ingest_test_data(sample_data, {"target_product": "#1"})
+
+    assert isinstance(result, pd.DataFrame)
+
+    expected_columns = ['index', 'full_date', 'Sales_EUR']
+    assert set(result.columns.to_list()) == set(expected_columns)
+    print(result)
+    # assert that full_date column has the format %Y-%m-%d
+    assert result['full_date'].to_list() == ['2022-05-01', '2022-10-01']
+    assert result['Sales_EUR'].to_list() == [105.5, 200.0]
