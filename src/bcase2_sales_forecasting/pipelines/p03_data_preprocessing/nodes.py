@@ -29,7 +29,8 @@ def preprocess_sales(
     # Copy the DataFrame
     sales_copy = data.copy()
 
-    # Convert 'Full_Date' column to datetime already done while ingesting
+    # Convert 'Full_Date' column to datetime
+    sales_copy['full_date'] = pd.to_datetime(sales_copy['full_date'], dayfirst=True)
 
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
     sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
