@@ -35,15 +35,9 @@ def preprocess_sales(
     # # Convert 'Full_Date' column to datetime already done while ingesting
     # sales_copy['full_date'] = pd.to_datetime(sales_copy['full_date'], dayfirst=True)
 
-    # HERE IS A PROBLEM: I DON'T KNOW WHY, BUT IN JUPYTER FILE THE OUTPUT OF THIS LINE OF CODE GENERATES 620 ROWS
-    # THE OUTPUT OF THIS LINE OF CODE IN THIS PIPELINE IS 790 ROWS
-    # AND PERHAPS BECAUSE OF THAT IN THE normality_results WE DON'T HAVE ANY NORMALLY DISTRIBUTED GROUP
-    # BUT IN JUPYTER FILE WE HAVE INITIALLY GROUPS 3, 5, 6 NORMALLY DISTRIBUTED, AND AFTER REMOVING OUTLIRES ALSO GROUP 1
-    # WE ARE LIVING AS IS BUT TO BE INVESTIGATED WHY THE PIPELINE IS CORRUPTING THE DATA
-
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
     sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
-
+    
     # # Notebook ch3.1
     # Define a dictionary where keys are column names and values are data types
     data_types = {
@@ -66,81 +60,79 @@ def preprocess_sales(
     # Print the results
     for product, is_normal in normality_results.items():
         if is_normal:
-            logger.info(f"Product {product}: {Style.BRIGHT}Normally Distributed{Style.RESET_ALL}")
+            logger.info(f"Product {product}: ==>> Normally Distributed <<==")
         else:
-            logger.info(f"Product {product}: Not Normally Distributed")
+            # logger.info(f"Product {product}: Not Normally Distributed")
+            pass
 
-    logger.info(f"normality results:\n{normality_results}")
+    # logger.info(f"normality results:\n{normality_results}")
 
     # Filter products with Normal Distribution
-    # sales_normal = sales_copy.query('GCK == "#3" | GCK == "#5" | GCK == "#6"') # these were expected to be normally distributed
     is_normal_list = [product for product, is_normal in normality_results.items() if is_normal]
     sales_normal = sales_copy[sales_copy['gck'].isin(is_normal_list)]
 
-    # Create an empty list to store outlier indices
-    outlier_indices = []
-
-    # Iterate over groups
-    for group_name, group_data in sales_normal.groupby('gck')['sales_eur']:
-        # Detect outliers for the current group
-        outliers_group = group_data.pipe(detect_outliers_zscore)
-        # Append outlier indices to the list
-        outlier_indices.extend(group_data[outliers_group].index)
-        
     # Filter the DataFrame using outlier indices
-    outliers_df = sales_normal.loc[outlier_indices]
+    outliers_df = get_outliers(sales_normal, detect_outliers_zscore)
 
     # Print the DataFrame containing outliers
-    logger.info(f"Outliers detected:\n{outliers_df}")
+    logger.info(f"Outliers detected (normal):\n{outliers_df}")
+    
     # Only three of the products present a Normal Distribution, and by those standards product #3 has one outlier
     # Since most of the products do not follow a Normal Distribution IQR can be helpfull do detect outliers
 
-    # Create an empty list to store outlier indices
-    outlier_indices = []
-
-    # Iterate over groups
-    for group_name, group_data in sales_copy.groupby('gck')['sales_eur']:
-        # Detect outliers for the current group
-        outliers_group = group_data.pipe(detect_outliers_iqr)
-        # Append outlier indices to the list
-        outlier_indices.extend(group_data[outliers_group].index)
-
     # Filter the DataFrame using outlier indices
-    outliers_df_iqr = sales_copy.loc[outlier_indices]
+    outliers_df_iqr = get_outliers(sales_copy, detect_outliers_iqr)
 
     # Print the DataFrame containing outliers detected using IQR
-    logger.info(f"Outliers detected:\n{outliers_df_iqr}")
-    # Overall, although IQR shows a lot of outliers we will consider only the lowest value in product #1... and for product #3 and #5, since these follow a Normal Distribution, we will give a higher importance to the previous graph
-    # This means that only 2 values need to be treated one for product #1 in November 2018, and another for product #3 in January 2021
-    # 
-    # ###############################################3
-    # # For product #1 (2018-11-01) we will substitute the outlier by the mean of the first 4 months
+    logger.info(f"Outliers detected (iqr):\n{outliers_df_iqr}")
 
-    # # Filter the DataFrame for product #1 and the first 6 months
-    # mean_sales_product_1_first_6_months = sales_copy.query('GCK == "#1" and Full_Date < "2019-04-30"')['Sales €'].mean()
+    # Overall, although IQR shows a lot of outliers we will consider only the lowest value in product #1... and for product #3, 
+    # since these follow a Normal Distribution, we will give a higher importance to the previous graph
+    # This means that only 2 values need to be treated
+    # one for product #1 in November 2018, and 
+    # another for product #3 in January 2021
+    
+    # For product #1 (2018-11-01) we will substitute the outlier by the mean of the first 4 months
+    logger.info(f"============>>")
+    product_1_first_6_months_df = sales_copy.query('gck == "#1" and full_date < "2019-04-30"')
+    logger.info(f"sales_copy.loc[sales_copy.query(gck == #1 and full_date < 2019-04-30)]:\n{product_1_first_6_months_df}\ntype: {type(product_1_first_6_months_df)}")
+    # logger.info(f"sales_copy.loc[sales_copy.query(gck == #1 and full_date < 2019-04-30).index]:\n{product_1_first_6_months_df.index}")
+    
+    # Filter the DataFrame for product #1 and the first 6 months and calculate mean
+    mean_sales_product_1_first_6_months = product_1_first_6_months_df['sales_eur'].mean()
 
-    # sales_copy.loc[sales_copy.query('GCK == "#1" and Full_Date == "2018-11-01"').index, 'Sales €'] = mean_sales_product_1_first_6_months
+    request_prod = (sales_copy['gck'] == '#1')
+    request_date = (sales_copy['full_date'] == "2018-11")
+    product_1_month_11_2018_df = sales_copy[request_prod & request_date]
+    logger.info(f"====================>> {product_1_month_11_2018_df.iloc[0, 0]}")
+    logger.info(f"sales_copy.loc[sales_copy.query(gck == #1 and full_date == 2018-11)]:\n{product_1_month_11_2018_df}\ntype: {type(product_1_month_11_2018_df)}\nmean_sales_product_1_first_6_months: {mean_sales_product_1_first_6_months}")
+    # .query filtering doesn't work properly here
+    # sales_copy.loc[sales_copy.query('gck == "#1" and full_date == "2018-11-01"').index, 'sales_eur'] = mean_sales_product_1_first_6_months
+    sales_copy.loc[sales_copy[request_prod & request_date].index, 'sales_eur'] = mean_sales_product_1_first_6_months
 
-    # # For product #3 (2021-01-01) since it follows a normal distribution we will use Z-score 
-    # # Calculate mean and standard deviation
-    # mean_sales = sales_copy[sales_copy['GCK'] == "#3"]["Sales €"].mean()
-    # std_dev_sales = sales_copy[sales_copy['GCK'] == "#3"]["Sales €"].std()
+    # For product #3 (2021-01-01) since it follows a normal distribution we will use Z-score 
+    # Calculate mean and standard deviation
+    request_prod = (sales_copy['gck'] == '#3')
+    request_date = (sales_copy['full_date'] == "2021-01")
+    mean_sales = sales_copy[request_prod]["sales_eur"].mean()
+    std_dev_sales = sales_copy[request_prod]["sales_eur"].std()
 
-    # # Fill
-    # sales_copy.loc[sales_copy.query('GCK == "#3" and Full_Date == "2021-01-01"').index, 'Sales €'] = round(mean_sales - 2.9 * std_dev_sales,2)
+    # Fill
+    sales_copy.loc[sales_copy[request_prod & request_date].index, 'sales_eur'] = round(mean_sales - 2.9 * std_dev_sales, 2)
 
-    # # Repeating the Normality Test
-    # normality_results2 = sales_copy.groupby('GCK')['Sales €'].apply(check_normality)
+    # Repeating the Normality Test
+    normality_results2 = sales_copy.groupby('gck')['sales_eur'].apply(check_normality)
 
-    # # Print the results
-    # for product, is_normal in normality_results2.items():
-    #     if is_normal:
-    #         print(f"Product {product}: {Style.BRIGHT}Normally Distributed{Style.RESET_ALL}")
-    #     else:
-    #         print(f"Product {product}: Not Normally Distributed")
+    # Print the results
+    for product, is_normal in normality_results2.items():
+        if is_normal:
+            logger.info(f"Product {product}: ==>> Normally Distributed <<==")
+        else:
+            # logger.info(f"Product {product}: Not Normally Distributed")
+            pass
 
-    # # Note: Product #1 follows a normal distribution after removing the outliers!!
-    # ################################################
+    # Note: Product #1 follows a normal distribution after removing the outliers!!
+
     pass
 
     # Set True/False whenever debug needed/or not

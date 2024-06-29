@@ -52,3 +52,27 @@ def detect_outliers_iqr(data: pd.Series):
     upper_bound = quartile_3 + (1.5 * iqr)
     
     return (data < lower_bound) | (data > upper_bound)
+
+
+def get_outliers(data: pd.DataFrame, detect_outliers_funcrion: Any):
+    """Function returns filtered data. Data is being filtered according to detect_outliers_funcrion passed
+    as second argument.
+    Expected names for detect_outliers_funcrion: 
+    - detect_outliers_zscore
+    - detect_outliers_iqr
+    """
+
+    # Create an empty list to store outlier indices
+    outlier_indices = []
+
+    # Iterate over groups
+    for group_name, group_data in data.groupby('gck')['sales_eur']:
+        # Detect outliers for the current group
+        outliers_group = group_data.pipe(detect_outliers_funcrion)
+        # Append outlier indices to the list
+        outlier_indices.extend(group_data[outliers_group].index)
+
+    # Filter the DataFrame using outlier indices
+    outliers_df_iqr = data.loc[outlier_indices]
+
+    return outliers_df_iqr
