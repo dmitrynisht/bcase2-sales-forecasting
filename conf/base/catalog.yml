@@ -60,7 +60,7 @@ ingested_sales:
   load_args:
     parse_dates: ['full_date']
   save_args:
-    date_format: '%d-%m-%Y'
+    date_format: '%Y-%m-%d'
 
 ingested_markets:
   type: pandas.CSVDataset

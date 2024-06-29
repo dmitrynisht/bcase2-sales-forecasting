@@ -68,7 +68,7 @@ def sales_columns_naming_(data: pd.DataFrame) -> pd.DataFrame:
 def full_date_col_(data: pd.DataFrame) -> pd.DataFrame:
     
     # Format data
-    data['Full_Date'] = pd.to_datetime(data['Full_Date'], format='%d.%m.%Y')#.dt.strftime('%d-%m-%Y')
+    data['Full_Date'] = pd.to_datetime(data['Full_Date'], format='%d.%m.%Y', dayfirst=True)#.dt.strftime('%d-%m-%Y')
     
     return data
 

@@ -30,8 +30,16 @@ def preprocess_sales(
     # Copy the DataFrame
     sales_copy = data.copy()
 
-    # Convert 'Full_Date' column to datetime already done while ingesting
-    sales_copy['full_date'] = pd.to_datetime(sales_copy['full_date'], dayfirst=True)
+    logger.info(f"'full_date' column type:\n{sales_copy[['full_date']].dtypes}")
+
+    # # Convert 'Full_Date' column to datetime already done while ingesting
+    # sales_copy['full_date'] = pd.to_datetime(sales_copy['full_date'], dayfirst=True)
+
+    # HERE IS A PROBLEM: I DON'T KNOW WHY, BUT IN JUPYTER FILE THE OUTPUT OF THIS LINE OF CODE GENERATES 620 ROWS
+    # THE OUTPUT OF THIS LINE OF CODE IN THIS PIPELINE IS 790 ROWS
+    # AND PERHAPS BECAUSE OF THAT IN THE normality_results WE DON'T HAVE ANY NORMALLY DISTRIBUTED GROUP
+    # BUT IN JUPYTER FILE WE HAVE INITIALLY GROUPS 3, 5, 6 NORMALLY DISTRIBUTED, AND AFTER REMOVING OUTLIRES ALSO GROUP 1
+    # WE ARE LIVING AS IS BUT TO BE INVESTIGATED WHY THE PIPELINE IS CORRUPTING THE DATA
 
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
     sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
@@ -39,38 +47,21 @@ def preprocess_sales(
     # # Notebook ch3.1
     # Define a dictionary where keys are column names and values are data types
     data_types = {
-        # 'full_date': 'datetime64[ns]',
-        # 'gck': 'object',
+        # 'full_date': 'datetime64[ns]', # already date when igested
+        # 'gck': 'object', # already object when ingested
         'sales_eur': 'float32'
     }
     
-    # HERE IS A PROBLEM: I DON'T KNOW WHY, BUT IN JUPYTER FILE THE OUTPUT OF THIS LINE OF CODE GENERATES 620 ROWS
-    # THE OUTPUT OF THIS LINE OF CODE IN THIS PIPELINE IS 790 ROWS
-    # AND PERHAPS BECAUSE OF THAT IN THE normality_results WE DON'T HAVE ANY NORMALLY DISTRIBUTED GROUP
-    # BUT IN JUPYTER FILE WE HAVE INITIALLY GROUPS 3, 5, 6 NORMALLY DISTRIBUTED, AND AFTER REMOVING OUTLIRES ALSO GROUP 1
-    # WE ARE LIVING AS IS BUT TO BE INVESTIGATED WHY THE PIPELINE IS CORRUPTING THE DATA
+    # Apply data types to the DataFrame
+    for col, dtype in data_types.items():
+        sales_copy[col] = sales_copy[col].astype(dtype)
 
-    # # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
-    # sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
+    logger.info(f"The sales dataset columns convertion finished.")
 
-    # # # Notebook ch3.1
-    # # Define a dictionary where keys are column names and values are data types
-    # data_types = {
-    #     'full_date': 'datetime64[ns]',
-    #     # 'gck': 'object',
-    #     'sales_eur': 'float32'
-    # }
-    
-    # # Apply data types to the DataFrame
-    # for col, dtype in data_types.items():
-    #     sales_copy[col] = sales_copy[col].astype(dtype)
+    # 3.5 OUTLIERS. z-score
 
-    # logger.info(f"The sales dataset columns convertion finished.")
-
-    # # 3.5 OUTLIERS. z-score
-
-    # # Apply the function to check normality for each product
-    # normality_results = sales_copy.groupby('gck')['sales_eur'].apply(check_normality)
+    # Apply the function to check normality for each product
+    normality_results = sales_copy.groupby('gck')['sales_eur'].apply(check_normality)
 
     # # Print the results
     # for product, is_normal in normality_results.items():
