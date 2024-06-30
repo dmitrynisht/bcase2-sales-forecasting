@@ -6,6 +6,7 @@ from kedro.framework.project import settings
 import pandas as pd
 import numpy as np
 from .utils import *
+import matplotlib.pyplot as plt
 
 conf_path = str(Path('') / settings.CONF_SOURCE)
 conf_loader = OmegaConfigLoader(conf_source=conf_path)
@@ -92,7 +93,17 @@ def compute_sales_lag_features(
     add_sales_lags(sales_lag)
     sales_lag.dropna(inplace=True, axis=1)
 
-    sales_lag = sales_lag[list(set(['sales_eur'] + get_highly_correlated_features(sales_lag) + get_top_10_features(sales_lag)))]
+    highly_correlated_features = get_highly_correlated_features(sales_lag)
+
+    top_10 = get_top_10_features(sales_lag)
+    top_10_features = top_10.index.tolist()
+    top_10.plot(kind='barh', legend=None, figsize=(10, 6))
+    plt.tight_layout(pad=2.5)
+    plt.xlabel('Importance')
+    plt.ylabel('Feature')
+    plt.title(f'Top 10 Feature accordings to XGBoost Feature Importance')
+
+    sales_lag = sales_lag[list(set(['sales_eur'] + highly_correlated_features + top_10_features))]
     sales_lag.dropna(inplace=True)
     sales_lag.reset_index(inplace=True)
 
@@ -101,5 +112,5 @@ def compute_sales_lag_features(
 
     # Reformat the date_column to the desired format
     sales_lag[parameters['date_column']] = sales_lag[parameters['date_column']].dt.strftime('%Y-%m-%d')
- 
-    return sales_lag
+
+    return sales_lag, plt

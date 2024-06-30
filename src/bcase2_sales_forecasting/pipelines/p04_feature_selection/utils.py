@@ -53,14 +53,11 @@ def get_top_10_features(data):
 
     # Select the top 10 rows
     top_10 = importance.iloc[-10:]
-    
-    # Extract the top feature names into a list
-    top_feature_list = top_10.index.tolist()
 
     # Print the list of correlated features
-    logger.info(f"Top 10 Features: {top_feature_list}\n")
+    logger.info(f"Top 10 Features: {top_10.index.tolist()}\n")
     
-    return top_feature_list
+    return top_10
 
 def find_lag(market_data, product_sales, mkt_lagged_datasets):
     """ 
