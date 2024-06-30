@@ -112,5 +112,5 @@ def compute_sales_lag_features(
 
     # Reformat the date_column to the desired format
     sales_lag[parameters['date_column']] = sales_lag[parameters['date_column']].dt.strftime('%Y-%m-%d')
- 
-    return sales_lag
+
+    return sales_lag, plt
