@@ -8,6 +8,7 @@ target_product: '#1'
 
 num_feature_cols: 0
 
+# for model training
 fit_params_Prophet: { 
     }
 
@@ -18,5 +19,8 @@ fit_params_NeuralProphet: {
         'progress': 'print',
         'epochs': 20
     }
-    
-drift_factor: 0.1
+
+# For drift detection
+historical_feature_name: "sales_eur"
+prepared_feature_name: "y"
+p_val_drift_threshold: 0.05
