@@ -129,15 +129,13 @@ def compute_sales_lag_features(
     add_sales_lags(sales_lag)
     sales_lag.dropna(inplace=True, axis=1)
 
-    highly_correlated_features = get_highly_correlated_features(sales_lag)
+    top_10_features = get_top_10_features(sales_lag)
+    top10_plot = plot_feature_importance(top_10_features)
+    top_10_features = top_10_features.index.tolist()
 
-    top_10 = get_top_10_features(sales_lag)
-    top_10_features = top_10.index.tolist()
-    top_10.plot(kind='barh', legend=None, figsize=(10, 6))
-    plt.tight_layout(pad=2.5)
-    plt.xlabel('Importance')
-    plt.ylabel('Feature')
-    plt.title(f'Top 10 Feature accordings to XGBoost Feature Importance')
+    highly_correlated_features = get_highly_correlated_features(sales_lag)
+    high_corr_feats_plot = plot_highly_correlated_features(highly_correlated_features)
+    highly_correlated_features = highly_correlated_features.index.tolist()
 
     sales_lag = sales_lag[list(set(['sales_eur'] + highly_correlated_features + top_10_features))]
     sales_lag.dropna(inplace=True)
@@ -149,4 +147,26 @@ def compute_sales_lag_features(
     # Reformat the date_column to the desired format
     sales_lag[parameters['date_column']] = sales_lag[parameters['date_column']].dt.strftime('%Y-%m-%d')
  
-    return sales_lag, plt
+    return sales_lag, top10_plot, high_corr_feats_plot
+
+def plot_feature_importance(top_10: pd.DataFrame):
+    top10_fig, top10_ax = plt.subplots(figsize=(10, 6))
+    top_10.plot(kind='barh', legend=None, ax=top10_ax)
+    
+    top10_ax.set_xlabel('Importance')
+    top10_ax.set_ylabel('Feature')
+    top10_ax.set_title(f'Top 10 Feature accordings to XGBoost Feature Importance')
+
+    top10_fig.tight_layout(pad=2.5)
+    return top10_fig
+
+def plot_highly_correlated_features(highly_correlated_features: pd.DataFrame):
+    corr_fig, corr_ax = plt.subplots(figsize=(10, 6))
+    highly_correlated_features.plot(kind='barh', legend=None, ax=corr_ax)
+    
+    corr_ax.set_xlabel('Correlation')
+    corr_ax.set_ylabel('Feature')
+    corr_ax.set_title(f'Highly Correlated Features with Sales €')
+
+    corr_fig.tight_layout(pad=2.5)
+    return corr_fig

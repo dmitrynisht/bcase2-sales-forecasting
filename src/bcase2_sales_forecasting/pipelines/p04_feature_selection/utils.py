@@ -52,7 +52,9 @@ def get_highly_correlated_features(data):
 
     logger.info(f"Correlated Features: {chosen_features}\n")
     
-    return chosen_features
+    chosen_features_corr_df = sales_correlation[sales_correlation.index.isin(chosen_features)]
+    
+    return chosen_features_corr_df
 
 def get_top_10_features(data):
     # fit XGBoost model and calc feature importances
