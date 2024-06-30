@@ -96,7 +96,12 @@ def compute_sales_lag_features(
         parameters: Dict[str, Any]) -> pd.DataFrame:
     # Only return sales of product specified in parameters
     # fallback to #1 if not specified
-    product_code = parameters.get("product_code") or "#1"
+    if parameters.get("target_product"):
+        product_code = parameters.get("target_product")
+    else:
+        logger.warn("No target code specified in parameters. Defaulting to #1")
+        product_code = "#1"
+    
     product_sales = sales_data[sales_data["gck"] == product_code]
 
     # Set 'Month Year' as index
@@ -119,7 +124,7 @@ def compute_sales_lag_features(
     sales_lag = find_lag(market_data, product_sales, mkt_lagged_datasets)
     sales_lag.set_index("full_date", inplace=True)
     sales_lag.drop("gck", axis=1, inplace=True)
-    
+
     add_sales_lags(sales_lag)
     sales_lag.dropna(inplace=True, axis=1)
 
