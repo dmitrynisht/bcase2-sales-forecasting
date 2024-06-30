@@ -7,7 +7,7 @@ def test_ingest_sales():
         'Sales_EUR': ["100", "200", "300,5"],
         'Mapped_GCK': ["#1", "#2", "#3"]
     })
-    result, _ = ingest_sales(sample_data, parameters={"to_feature_store": False, "debug_output": {}})
+    result = ingest_sales(sample_data, parameters={"to_feature_store": False, "debug_output": {}})
 
     assert isinstance(result, pd.DataFrame)
 
@@ -22,7 +22,7 @@ def test_ingest_markets():
     # We know that relying on the file isn't the best practice though
     sample_data = pd.read_excel("data/01_raw/Case2_Market_data.xlsx", header=None, engine='openpyxl')
     
-    result, _ = ingest_markets(sample_data, {"to_feature_store": False, "debug_output": {}}, None)
+    result = ingest_markets(sample_data, {"to_feature_store": False, "debug_output": {}})
 
     expected_columns = [
         'index',
@@ -85,7 +85,7 @@ def test_ingest_gdp():
         "GDP": ["560160.0", "563267.0", "566374"],
     })
 
-    result, _ = ingest_gdp(sample_data, {"to_feature_store": False, "debug_output": {}}, None)
+    result = ingest_gdp(sample_data, {"to_feature_store": False, "debug_output": {}})
 
     expected_columns = ['index', 'month_year', 'gdp']
 
@@ -105,9 +105,9 @@ def test_ingest_test_data():
 
     assert isinstance(result, pd.DataFrame)
 
-    expected_columns = ['index', 'full_date', 'Sales_EUR']
+    expected_columns = ['index', 'full_date', 'sales_eur']
     assert set(result.columns.to_list()) == set(expected_columns)
     print(result)
     # assert that full_date column has the format %Y-%m-%d
     assert result['full_date'].to_list() == ['2022-05-01', '2022-10-01']
-    assert result['Sales_EUR'].to_list() == [105.5, 200.0]
+    assert result['sales_eur'].to_list() == [105.5, 200.0]
