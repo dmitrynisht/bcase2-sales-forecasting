@@ -135,21 +135,21 @@ markets_best_features:
 #     type: pickle.PickleDataset
 #     filepath: data/06_models/best_cols.pkl
 
-X_train_data:
+df_train:
   type: pandas.CSVDataset
-  filepath: data/05_model_input/X_train.csv
+  filepath: data/05_model_input/df_train.csv
 
-y_train_data:
+df_val:
   type: pandas.CSVDataset
-  filepath: data/05_model_input/y_train.csv
+  filepath: data/05_model_input/df_val.csv
 
-X_val_data:
+df_train_full:
   type: pandas.CSVDataset
-  filepath: data/05_model_input/X_val.csv
+  filepath: data/05_model_input/df_train_full.csv
 
-y_val_data:
+df_test:
   type: pandas.CSVDataset
-  filepath: data/05_model_input/y_val.csv 
+  filepath: data/05_model_input/df_test.csv
 
 champion_model:
   type: kedro_mlflow.io.artifacts.MlflowArtifactDataset

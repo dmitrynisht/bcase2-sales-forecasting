@@ -19,21 +19,15 @@ from .utils import train_fb_prophet, train_neural_prophet
 logger = logging.getLogger(__name__)
 
      
-def model_selection(X_train: pd.DataFrame, 
-                    X_val: pd.DataFrame, 
-                    y_train: pd.DataFrame, 
-                    y_val: pd.DataFrame,
+def model_selection(df_train: pd.DataFrame, 
+                    df_val: pd.DataFrame,
                     parameters: Dict[str, Any]):
-    
-    
     """Trains a model on the given data and saves it to the given model path.
 
     Args:
     --
-        X_train (pd.DataFrame): Training features.
-        X_val (pd.DataFrame): Validation features.
-        y_train (pd.DataFrame): Training target.
-        y_val (pd.DataFrame): Validation target.
+        df_train (pd.DataFrame): Training data.
+        df_val (pd.DataFrame): Validation data.
         parameters (dict): Parameters defined in parameters.yml.
 
     Returns:
@@ -66,19 +60,15 @@ def model_selection(X_train: pd.DataFrame,
 
             if model_name == 'NeuralProphet':
                 model, model_rmse_val_last_epoch, fit_params = train_neural_prophet(model=model,
-                                                                                       X_train=X_train,
-                                                                                       X_val=X_val,
-                                                                                       y_train=y_train,
-                                                                                       y_val=y_val,
-                                                                                       parameters=parameters)
+                                                                                    df_train=df_train,
+                                                                                    df_val=df_val,
+                                                                                    parameters=parameters)
 
             elif model_name == 'FB_Prophet':
                 model, model_rmse_val_last_epoch, fit_params = train_fb_prophet(model=model,
-                                                                                       X_train=X_train,
-                                                                                       X_val=X_val,
-                                                                                       y_train=y_train,
-                                                                                       y_val=y_val,
-                                                                                       parameters=parameters)
+                                                                                df_train=df_train,
+                                                                                df_val=df_val,
+                                                                                parameters=parameters)
             else:
                 logger.warning(f"Implementation missing for {model_name}.")
 

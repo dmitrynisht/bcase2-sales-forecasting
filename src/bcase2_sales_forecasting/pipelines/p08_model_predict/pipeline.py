@@ -14,8 +14,7 @@ def create_pipeline(**kwargs) -> Pipeline:
             node(
                 func=model_predict,
                 inputs=["production_model", 
-                        "X_train_data", "X_val_data", "y_train_data", "y_val_data", "ingested_test_data",
-                        "parameters"],
+                        "df_train_full", "df_test", "parameters"],
                 outputs=["production_predictions", "production_rmse", "production_evalution_plot"],
                 name="model_predict",
             ),
