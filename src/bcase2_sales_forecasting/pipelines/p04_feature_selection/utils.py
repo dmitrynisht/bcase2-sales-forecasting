@@ -75,7 +75,7 @@ def get_top_10_features(data):
     
     return top_feature_list
 
-def find_lag(product_code, market_data, product_sales_map, mkt_lagged_datasets):
+def find_lag(market_data, product_sales, mkt_lagged_datasets):
     """ 
     This function identifies the most significant lag for each macroeconomic index with respect to a given product group's sales data. 
     
@@ -88,7 +88,7 @@ def find_lag(product_code, market_data, product_sales_map, mkt_lagged_datasets):
     """
 
     # Select sales data based on product code
-    sales_data = product_sales_map["sales_" + str(product_code)].reset_index(drop=True)
+    sales_data = product_sales.reset_index(drop=True)
 
     # Initialize DataFrame to store lag features
     data_with_lags = sales_data.copy()
