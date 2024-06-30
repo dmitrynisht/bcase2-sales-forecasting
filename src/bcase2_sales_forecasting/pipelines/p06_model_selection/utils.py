@@ -9,31 +9,14 @@ warnings.filterwarnings("ignore", category=Warning)
 
 
 def train_neural_prophet(model,
-                    X_train: pd.DataFrame, 
-                    X_val: pd.DataFrame, 
-                    y_train: pd.DataFrame, 
-                    y_val: pd.DataFrame,
+                    df_train: pd.DataFrame, 
+                    df_val: pd.DataFrame, 
                     parameters: Dict[str, Any]):
     """
     """
-    df_train = pd.DataFrame({
-                            'ds': X_train[parameters['date_column']],
-                            'y': y_train[parameters['target_column']]
-                            })
-
-    df_val = pd.DataFrame({
-                            'ds': X_val[parameters['date_column']],
-                            'y': y_val[parameters['target_column']]
-                            })
     
-     # Define fit parameters
-    fit_params = {
-        'freq': 'M',
-        'batch_size': 4,
-        'metrics': 'RMSE',
-        'progress': 'print',
-        'epochs': 20
-    }
+    # Define fit parameters
+    fit_params = parameters['fit_params_NeuralProphet']
 
     # Log the fit parameters
     mlflow.log_params(fit_params)
@@ -45,29 +28,21 @@ def train_neural_prophet(model,
 
     model_rmse_val_last_epoch = model_metrics['RMSE_val'].iloc[-1]
 
+    print('---------')
+    print('NP')
+    print(model_metrics)
+    print('_____________')
+
     return model, model_rmse_val_last_epoch, fit_params
 
 def train_fb_prophet(model,
-                X_train: pd.DataFrame, 
-                X_val: pd.DataFrame, 
-                y_train: pd.DataFrame, 
-                y_val: pd.DataFrame,
+                df_train: pd.DataFrame, 
+                df_val: pd.DataFrame,
                 parameters: Dict[str, Any]):
     """
     """
-    df_train = pd.DataFrame({
-                        'ds': X_train[parameters['date_column']],
-                        'y': y_train[parameters['target_column']]
-                        })
-
-    df_val = pd.DataFrame({
-                        'ds': X_val[parameters['date_column']],
-                        'y': y_val[parameters['target_column']]
-                        })
-    
     # Define fit parameters
-    fit_params = {
-    }
+    fit_params = parameters['fit_params_Prophet']
 
     # Log the fit parameters
     mlflow.log_params(fit_params)
@@ -88,5 +63,10 @@ def train_fb_prophet(model,
     rmse_val = np.sqrt(((forecast_vals['yhat'] - actual_vals) ** 2).mean())
 
     results = pd.concat([forecast[['ds', 'yhat']], future], axis=1)
+
+    print('---------')
+    print('FACEBOOK')
+    print(results)
+    print('_____________')
 
     return model, rmse_val, fit_params

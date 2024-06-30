@@ -15,14 +15,13 @@ from neuralprophet import NeuralProphet
 from neuralprophet import set_random_seed
 from prophet import Prophet
 
+from .utils import train_fb_prophet, train_neural_prophet
+
 logger = logging.getLogger(__name__)
 
 def model_train(champion_model,
                 champion_model_parameters: Dict[str, Any],
-                X_train: pd.DataFrame, 
-                X_val: pd.DataFrame, 
-                y_train: pd.DataFrame, 
-                y_val: pd.DataFrame,
+                df_full: pd.DataFrame,
                 parameters: Dict[str, Any]):
     """Trains a model on the given data and saves it to the given model path.
 
@@ -30,10 +29,7 @@ def model_train(champion_model,
     --  
         champion_model: champion model to train.
         champion_model_parameters (Dict): Fit parameter of champion model
-        X_train (pd.DataFrame): Training features.
-        X_val (pd.DataFrame): Test features.
-        y_train (pd.DataFrame): Training target.
-        y_val (pd.DataFrame): Test target.
+        df_full (pd.DataFrame): Full training data.
 
     Returns:
     --
@@ -51,38 +47,26 @@ def model_train(champion_model,
 
     mlflow.sklearn.autolog(log_model_signatures=True, log_input_examples=True)
 
-    results_dict = {}
+    class_name = champion_model.__class__.__name__
+    
     with mlflow.start_run(experiment_id=experiment_id, nested=True):
-
-        class_name = champion_model.__class__.__name__
 
         # Reinitialize the model
         if class_name == 'NeuralProphet':
             set_random_seed(parameters['random_state'])
             model = NeuralProphet()
+            model = train_neural_prophet(model, df_full, parameters)
+
         elif class_name == 'Prophet':
             model = Prophet()
+            model = train_fb_prophet(model, df_full, parameters)
         else:
             raise ValueError(f"Unsupported model class: {class_name}")
 
-        X_full = pd.concat([X_train, X_val], axis=0).reset_index(drop=True)
-        y_full = pd.concat([y_train, y_val], axis=0).reset_index(drop=True)
-
-        df_full = pd.DataFrame({
-                                'ds': X_full[parameters['date_column']],
-                                'y': y_full[parameters['target_column']]
-                                })
-
         fit_params = champion_model_parameters
-
-        model.fit(df_full, **fit_params)
-
-        # saving results in dict
-        results_dict['model'] = class_name
 
         # logging in mlflow
         run_id = mlflow.last_active_run().info.run_id
         logger.info(f"Logged train model in run {run_id}")
-
 
     return model, fit_params

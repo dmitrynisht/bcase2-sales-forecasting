@@ -128,9 +128,14 @@ def compute_sales_lag_features(
     add_sales_lags(sales_lag)
     sales_lag.dropna(inplace=True, axis=1)
 
-    #TODO: Create specific nodes in pipeline to get corr and top feats
     sales_lag = sales_lag[list(set(['sales_eur'] + get_highly_correlated_features(sales_lag) + get_top_10_features(sales_lag)))]
     sales_lag.dropna(inplace=True)
     sales_lag.reset_index(inplace=True)
 
+    # Convert the date_column to datetime format
+    sales_lag[parameters['date_column']] = pd.to_datetime(sales_lag[parameters['date_column']], format='%d-%m-%Y')
+
+    # Reformat the date_column to the desired format
+    sales_lag[parameters['date_column']] = sales_lag[parameters['date_column']].dt.strftime('%Y-%m-%d')
+ 
     return [sales_lag]
