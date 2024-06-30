@@ -16,6 +16,7 @@ https://docs.kedro.org/en/stable/kedro_project_setup/settings.html."""
 from pathlib import Path  # noqa: E402
 
 from kedro_viz.integrations.kedro.sqlite_store import SQLiteStore  # noqa: E402
+from .pipeline_registry import register_pipelines
 
 SESSION_STORE_CLASS = SQLiteStore
 # Keyword arguments to pass to the `SESSION_STORE_CLASS` constructor.
@@ -23,6 +24,9 @@ SESSION_STORE_ARGS = {"path": str(Path(__file__).parents[2])}
 
 # Directory that holds configuration.
 # CONF_SOURCE = "conf"
+
+# Define the default pipeline
+DEFAULT_PIPELINE = "complete_pipe"
 
 # Class that manages how configuration is loaded.
 from kedro.config import OmegaConfigLoader  # noqa: E402
