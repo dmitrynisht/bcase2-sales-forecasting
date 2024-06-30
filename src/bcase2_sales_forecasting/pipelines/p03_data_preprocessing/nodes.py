@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 
 def preprocess_sales(
         data: pd.DataFrame, 
-        parameters: Dict[str, Any],
-        dummy_value) -> pd.DataFrame:
+        parameters: Dict[str, Any]) -> pd.DataFrame:
     
     logger = logging.getLogger(__name__)
 
@@ -32,8 +31,6 @@ def preprocess_sales(
 
     logger.info(f"'full_date' column type:\n{sales_copy[['full_date']].dtypes}")
 
-    # # Convert 'Full_Date' column to datetime already done while ingesting
-    # sales_copy['full_date'] = pd.to_datetime(sales_copy['full_date'], dayfirst=True)
 
     # Group by both 'Full_Date' (month) and 'GCK' (product), and sum the sales
     sales_copy = sales_copy.groupby([sales_copy['full_date'].dt.to_period('M'), 'gck']).sum(numeric_only=True).reset_index()
@@ -62,10 +59,7 @@ def preprocess_sales(
         if is_normal:
             logger.info(f"Product {product}: ==>> Normally Distributed <<==")
         else:
-            # logger.info(f"Product {product}: Not Normally Distributed")
             pass
-
-    # logger.info(f"normality results:\n{normality_results}")
 
     # Filter products with Normal Distribution
     is_normal_list = [product for product, is_normal in normality_results.items() if is_normal]
@@ -96,7 +90,6 @@ def preprocess_sales(
     logger.info(f"============>>")
     product_1_first_6_months_df = sales_copy.query('gck == "#1" and full_date < "2019-04-30"')
     logger.info(f"sales_copy.loc[sales_copy.query(gck == #1 and full_date < 2019-04-30)]:\n{product_1_first_6_months_df}\ntype: {type(product_1_first_6_months_df)}")
-    # logger.info(f"sales_copy.loc[sales_copy.query(gck == #1 and full_date < 2019-04-30).index]:\n{product_1_first_6_months_df.index}")
     
     # Filter the DataFrame for product #1 and the first 6 months and calculate mean
     mean_sales_product_1_first_6_months = product_1_first_6_months_df['sales_eur'].mean()
@@ -106,8 +99,7 @@ def preprocess_sales(
     product_1_month_11_2018_df = sales_copy[request_prod & request_date]
     logger.info(f"====================>> {product_1_month_11_2018_df.iloc[0, 0]}")
     logger.info(f"sales_copy.loc[sales_copy.query(gck == #1 and full_date == 2018-11)]:\n{product_1_month_11_2018_df}\ntype: {type(product_1_month_11_2018_df)}\nmean_sales_product_1_first_6_months: {mean_sales_product_1_first_6_months}")
-    # .query filtering doesn't work properly here
-    # sales_copy.loc[sales_copy.query('gck == "#1" and full_date == "2018-11-01"').index, 'sales_eur'] = mean_sales_product_1_first_6_months
+    
     sales_copy.loc[sales_copy[request_prod & request_date].index, 'sales_eur'] = mean_sales_product_1_first_6_months
 
     # For product #3 (2021-01-01) since it follows a normal distribution we will use Z-score 
@@ -133,22 +125,12 @@ def preprocess_sales(
 
     # Note: Product #1 follows a normal distribution after removing the outliers!!
 
-    pass
-
-    # Set True/False whenever debug needed/or not
-    if parameters["debug_output"][pipeline_name]:
-        # Printing something from dataframe (usually columns)
-        # dummy_value is for checking pipelines sequence
-        f_verbose = True
-        debug_on_success_(sales_copy, dummy_value, pipeline_name, f_verbose)
-
-    return sales_copy, dummy_value
+    return sales_copy
 
 
 def preprocess_markets(
         data: pd.DataFrame, 
-        parameters: Dict[str, Any],
-        dummy_value) -> pd.DataFrame:
+        parameters: Dict[str, Any]) -> pd.DataFrame:
     
     logger = logging.getLogger(__name__)
 
@@ -160,7 +142,6 @@ def preprocess_markets(
     categorical_dtypes = ['object','string','category']
     market_numerical_features = market_copy.select_dtypes(exclude=categorical_dtypes+['datetime']).columns.tolist()
     market_numerical_features.remove('index')
-    # print("print to remove, markets preprocessing !".upper(), "list of columns:", market_numerical_features)
     new_numerical_type = 'float16'
 
     # Apply data types to the DataFrame
@@ -169,23 +150,13 @@ def preprocess_markets(
 
     logger.info(f"The market dataset {len(market_numerical_features)} columns converted to {new_numerical_type}. Conversion finished.")
 
-    pass
-
-    # Set True/False whenever debug needed/or not
-    if parameters["debug_output"][pipeline_name]:
-        # Printing something from dataframe (usually columns)
-        # dummy_value is for checking pipelines sequence
-        f_verbose = True
-        debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
-
-    return market_copy, dummy_value
+    return market_copy
 
 
 def market_merge_german_gdp(
         market_data: pd.DataFrame,
         gdp_data: pd.DataFrame, 
-        parameters: Dict[str, Any],
-        dummy_value) -> pd.DataFrame:
+        parameters: Dict[str, Any]) -> pd.DataFrame:
     
     logger = logging.getLogger(__name__)
 
@@ -209,13 +180,4 @@ def market_merge_german_gdp(
 
     logger.info(f"The MARKET data merged with GERMAN GDP. Processed market contains {len(market_copy.columns)} columns.")
 
-    pass
-
-    # Set True/False whenever debug needed/or not
-    if parameters["debug_output"][pipeline_name]:
-        # Printing something from dataframe (usually columns)
-        # dummy_value is for checking pipelines sequence
-        f_verbose = True
-        debug_on_success_(market_copy, dummy_value, pipeline_name, f_verbose)
-
-    return market_copy, dummy_value
+    return market_copy

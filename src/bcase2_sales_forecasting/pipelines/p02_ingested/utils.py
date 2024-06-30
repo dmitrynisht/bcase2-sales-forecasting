@@ -6,62 +6,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
-def debug_on_success_(data: pd.DataFrame, dummy_value: int, pipeline_name: str = "", f_verbose: bool = False) -> None:
-    
-    # Print columns
-    if f_verbose:
-        logger.info(f"major {pipeline_name} dataset:\n{data.dtypes}")
-
-    # dummy_value is for checking pipelines sequence
-    dummy_value.append(dummy_value[-1] + 1) 
-    # print(f"pipeline {pipeline_name} succeed !; f_verbose={f_verbose};", dummy_value)
-    logger.info(f"pipeline {pipeline_name.upper()} succeed !\nf_verbose={f_verbose};\ndummy sequence: {dummy_value}")
-
-    return
-
-
-def print_to_debug_(data: pd.DataFrame) -> None:
-    
-    data_copy = data.copy()
-    headers = data_copy.columns.to_list()
-    valid_headers = market_columns_list_()
-    print(f'{30*"#"} {"first 5 columns of data".upper()} {30*"#"}')
-    print(headers[:5])
-    print(f'{30*"#"} {"first 5 columns of validation_columns_list_".upper()} {30*"#"}')
-    print(valid_headers[:5])
-    print(f'{30*"#"} {"last 5 columns of data".upper()} {30*"#"}')
-    print(headers[-5:])
-    print(f'{30*"#"} {"last 5 columns of validation_columns_list_".upper()} {30*"#"}')
-    print(valid_headers[-5:])
-    # print(f'{30*"#"} {"length of market_columns_list_()".upper()} {30*"#"}')
-    print(90*"#")
-
-    data_copy = columns_sanitation_(data_copy)
-    headers = data_copy.columns.to_list()
-    print(f'{30*"#"} {"columns after sanitation".upper()} {30*"#"}')
-    print("col count:", len(headers), "valid count:", len(valid_headers))
-    print("first 5:")
-    print(headers[:5])
-    print(valid_headers[:5])
-    print("last 5:")
-    print(headers[-5:])
-    print(valid_headers[-5:])
-    print(data_copy.dtypes)
-    print(90*"#")
-
-    # if False:
-    #     # print(market_data.dtypes)
-    #     print(market_data['month_year'].dtypes)
-    #     print(f'{30*"#"} {"market_categorical_features".upper()} {30*"#"}')
-    #     print(market_categorical_features)
-    #     print(f'{30*"#"} {"market_numerical_features".upper()} {30*"#"}')
-    #     print(market_numerical_features)
-    #     return market_data
-
-    pass
-
-
 def sales_columns_naming_(data: pd.DataFrame) -> pd.DataFrame:
     
     # Rename columns
@@ -153,9 +97,6 @@ def market_columns_naming_(market_data: pd.DataFrame) -> pd.DataFrame:
         else:
             new_headers.append(name if isinstance(name, str) else '')
 
-    # print(len(new_headers), new_headers)
-    # print("##############################")
-
     # Assign the new headers to the DataFrame
     market_data.columns = new_headers
 
@@ -246,61 +187,3 @@ def columns_sanitation_(market_data: pd.DataFrame) -> pd.DataFrame:
     market_data.columns = new_headers
 
     return market_data
-
-
-if False:
-# def age_(data):
-    
-#     data['bin_age'] = 0  
-#     data.loc[(data['age'] <= 35) & (data['age'] >= 18),'bin_age'] = 1
-#     data.loc[(data['age'] <= 60) & (data['age'] >= 36),'bin_age'] = 2
-#     data.loc[data['age'] >=61,'bin_age'] = 3
-    
-#     return data
-
-# def campaign_(data):
-    
-    
-#     data.loc[data['campaign'] == 1,'campaign'] = 1
-#     data.loc[(data['campaign'] >= 2) & (data['campaign'] <= 3),'campaign'] = 2
-#     data.loc[data['campaign'] >= 4,'campaign'] = 3
-    
-#     return data
-
-# def duration_(data):
-    
-#     data['t_min'] = 0
-#     data['t_e_min'] = 0
-#     data['e_min']=0
-#     data.loc[data['duration'] <= 5,'t_min'] = 1
-#     data.loc[(data['duration'] > 5) & (data['duration'] <= 10),'t_e_min'] = 1
-#     data.loc[data['duration'] > 10,'e_min'] = 1
-    
-#     return data
-
-# def pdays_(data):
-#     data['pdays_not_contacted'] = 0
-#     data['months_passed'] = 0
-#     data.loc[data['pdays'] == -1 ,'pdays_not_contacted'] = 1
-#     data['months_passed'] = data['pdays']/30
-#     data.loc[(data['months_passed'] >= 0) & (data['months_passed'] <=2) ,'months_passed'] = 1
-#     data.loc[(data['months_passed'] > 2) & (data['months_passed'] <=6),'months_passed'] = 2
-#     data.loc[data['months_passed'] > 6 ,'months_passed'] = 3
-    
-#     return data
-
-
-# def balance_(data):
-#     data['Neg_Balance'] = 0
-#     data['No_Balance'] = 0
-#     data['Pos_Balance'] = 0
-#     data.loc[~data['balance']<0,'Neg_Balance'] = 1
-#     data.loc[data['balance'] < 1,'bin_Balance'] = 0
-#     data.loc[(data['balance'] >= 1) & (data['balance'] < 100),'bin_Balance'] = 1
-#     data.loc[(data['balance'] >= 100) & (data['balance'] < 500),'bin_Balance'] = 2
-#     data.loc[(data['balance'] >= 500) & (data['balance'] < 2000),'bin_Balance'] = 3
-#     data.loc[(data['balance'] >= 2000) & (data['balance'] < 5000),'bin_Balance'] = 4
-#     data.loc[data['balance'] >= 5000,'bin_Balance'] = 5
-    
-#     return data
-    pass

@@ -8,20 +8,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def debug_on_success_(data: pd.DataFrame, dummy_value: int, pipeline_name: str = "", f_verbose: bool = False) -> None:
-    
-    # Print columns
-    if f_verbose:
-        logger.info(f"major {pipeline_name} dataset:\n{data.dtypes}")
-
-    # dummy_value is for checking pipelines sequence
-    dummy_value.append(dummy_value[-1] + 1) 
-    # print(f"pipeline {pipeline_name} succeed !; f_verbose={f_verbose};", dummy_value)
-    logger.info(f"pipeline {pipeline_name.upper()} succeed !\nf_verbose={f_verbose};\ndummy sequence: {dummy_value}")
-
-    return
-
-
 def check_normality(data: pd.Series):
     """Function to check normality using Shapiro-Wilk test
     """

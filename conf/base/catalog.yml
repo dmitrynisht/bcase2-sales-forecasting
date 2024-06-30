@@ -5,30 +5,6 @@
 #
 # We support interacting with a variety of data stores including local file systems, cloud, network and HDFS
 
-01_dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/01_dummy.pkl
-
-02_dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/02_dummy.pkl
-
-03_dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/03_dummy.pkl
-
-04_dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/04_dummy.pkl
-
-05_dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/05_dummy.pkl
-
-06_dummy:
-  type: pickle.PickleDataset
-  filepath: data/02_intermediate/06_dummy.pkl
-
 sales_raw_data:
   type: pandas.CSVDataset
   filepath: data/01_raw/Case2_Sales_data.csv
@@ -38,8 +14,6 @@ sales_raw_data:
 german_gdp_raw_data:
   type: pandas.CSVDataset
   filepath: data/01_raw/German_GDP.csv
-  # load_args:
-  #   sep: ';'
 
 market_raw_data:
   type: pandas.ExcelDataset
@@ -75,8 +49,6 @@ ingested_german_gdp:
   filepath: data/02_intermediate/ingested_german_gdp.csv
   load_args:
     parse_dates: ['month_year']
-  # save_args:
-  #   date_format: '%Y-%m'
 
 ingested_test_data:
   type: pandas.CSVDataset
@@ -110,9 +82,6 @@ processed_markets:
   save_args:
     date_format: '%Y-%m'
 
-sales_best_features:
-  type: pandas.CSVDataset
-  filepath: data/04_feature/sales_best_features.csv
 
 features_with_sales_lag:
   type: pandas.CSVDataset
@@ -127,13 +96,6 @@ markets_best_features:
     parse_dates: ['month_year']
   save_args:
     date_format: '%Y-%m'
-
-# # Replace when ready
-# markets_feature_selection:
-#   type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
-#   dataset:
-#     type: pickle.PickleDataset
-#     filepath: data/06_models/best_cols.pkl
 
 df_train:
   type: pandas.CSVDataset
