@@ -134,12 +134,11 @@ def compute_sales_lag_features(
     # Apply the function to each lag dataset
     for lag_data in lag_datasets:
         add_sales_lags(lag_data)
-        lag_data.dropna(inplace=True)
 
     # Only return sales of product specified in parameters
     # fallback to #1 if not specified
     product_code = parameters.get(product_code) or "#1"
-    sales_p1 = sales_lag_per_product["#1"]
+    sales_p1 = sales_lag_per_product[product_code]
 
     #TODO: Create specific nodes in pipeline to get corr and top feats
     sales_p1 = sales_p1[list(set(['sales_eur'] + get_highly_correlated_features(sales_p1) + get_top_10_features(sales_p1)))]
