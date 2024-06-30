@@ -14,3 +14,4 @@ validation_fraction: 0.8
 date_column: 'full_date'
 target_column: 'sales_eur'
 target_product: '#1'
+drift_factor: 0.1
