@@ -134,6 +134,7 @@ def compute_sales_lag_features(
     # Apply the function to each lag dataset
     for lag_data in lag_datasets:
         add_sales_lags(lag_data)
+        lag_data.dropna(inplace=True)
 
     # Only return sales of product specified in parameters
     # fallback to #1 if not specified
