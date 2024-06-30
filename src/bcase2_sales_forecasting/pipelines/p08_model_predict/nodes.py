@@ -17,24 +17,17 @@ logger = logging.getLogger(__name__)
 
      
 def model_predict(model,
-                    X_train: pd.DataFrame, 
-                    X_val: pd.DataFrame, 
-                    y_train: pd.DataFrame, 
-                    y_val: pd.DataFrame,
-                    test_data: pd.DataFrame,
+                    df_full: pd.DataFrame, 
+                    df_test: pd.DataFrame,
                     parameters: Dict[str, Any]):
-    
     
     """Trains a model on the given data and saves it to the given model path.
 
     Args:
     --  
         model: Production model for prediction.
-        X_train (pd.DataFrame): Training features.
-        X_val (pd.DataFrame): Validation features.
-        y_train (pd.DataFrame): Training target.
-        y_val (pd.DataFrame): Validation target.
-        test_data (pd.DataFrame): Test Data for prediction.
+        df_full (pd.DataFrame): Training Data.
+        df_test (pd.DataFrame): Test Data for prediction.
         parameters (dict): Parameters defined in parameters.yml.
 
     Returns:
@@ -52,95 +45,86 @@ def model_predict(model,
 
     logger.info('Starting first step of model prediction.')
 
-    X_full = pd.concat([X_train, X_val], axis=0).reset_index(drop=True)
-    y_full = pd.concat([y_train, y_val], axis=0).reset_index(drop=True)
+    class_name = model.__class__.__name__
+    prediction_results['Model_Name'] = class_name
 
-    df_full = pd.DataFrame({
-                            'ds': X_full[parameters['date_column']],
-                            'y': y_full[parameters['target_column']]
-                            })
-    
-    print(test_data)
-    
-    df_test = pd.DataFrame({
-                            'ds': test_data[parameters['date_column']],
-                            'y': test_data[parameters['target_column']]
-                            })
-    
-
-    print('MODEL NAME: ', model.__class__.__name__)
-
-    if model.__class__.__name__ == 'NeuralProphet':
-        future = model.make_future_dataframe(df_full, n_historic_predictions=True, periods=len(test_data))
+    if class_name == 'NeuralProphet':
+        future = model.make_future_dataframe(df_full, n_historic_predictions=True, periods=len(df_test))
         forecast = model.predict(future)
 
-        # Merge the DataFrames on 'full_date' and 'ds'
-        merged_df = pd.merge(forecast, test_data, left_on='ds', right_on=parameters['date_column'], how='left')
+        # Convert 'ds' column to datetime in both DataFrames
+        forecast['ds'] = pd.to_datetime(forecast['ds'])
+        df_test['ds'] = pd.to_datetime(df_test['ds'])
 
-        # Use 'Sales_EUR' to fill NaN values in 'y'
-        merged_df['y'] = merged_df['y'].fillna(merged_df[parameters['target_column']])
+        #  Merge the two DataFrames on the 'ds' column
+        merged_df = forecast.merge(df_test, on='ds', how='left', suffixes=('', '_new'))
 
-        # Drop the 'Sales_EUR' and 'full_date' columns if no longer needed
-        merged_df.drop(columns=test_data.columns, inplace=True)
+        # Fill NaN values in 'y' with the corresponding 'y_new' values
+        merged_df['y'].fillna(merged_df['y_new'], inplace=True)
 
-        actual_sales = merged_df['y'].values[-len(test_data):]
-        predicted_sales = merged_df['yhat1'].values[-len(test_data):]
+        # Drop the 'y_new' column as it is no longer needed
+        merged_df.drop(columns=['y_new'], inplace=True)
+
+        actual_sales = merged_df['y'].values[-len(df_test):]
+        predicted_sales = merged_df['yhat1'].values[-len(df_test):]
 
         rmse = np.sqrt(mean_squared_error(actual_sales, predicted_sales))
 
-    elif model.__class__.__name__ == 'Prophet':
+        df_results = merged_df[['ds', 'y', 'yhat1']]
+        df_predictions = merged_df[['ds', 'y', 'yhat1']].iloc[-len(df_test):].reset_index(drop=True)
+
+        # Dictionary to rename columns
+        rename_dict = {
+                'ds': 'Date',
+                'y': 'Actual_Sales_EUR',
+                'yhat1': 'Predicted_Sales_EUR'
+        }
+
+        prediction_results['RMSE_TEST_SCORE'] = rmse
+        # Rename columns
+        df_predictions.rename(columns=rename_dict, inplace=True)
+        df_results.rename(columns=rename_dict, inplace=True)
+
+        fig = create_actual_vs_predicted_plot(df_results, df_full, parameters)
+
+        return df_predictions, prediction_results, fig
+    
+    elif class_name == 'Prophet':
+         
         future = pd.concat([df_full, df_test], axis=0).reset_index(drop=True)
         forecast = model.predict(future)
 
-        # Ensure forecasted and actual values are properly aligned
-        forecast_vals = forecast[['yhat']].iloc[-len(df_test):].reset_index(drop=True)
-        actual_vals = df_test['y'].reset_index(drop=True)
+        # Convert 'ds' column to datetime in both DataFrames
+        forecast['ds'] = pd.to_datetime(forecast['ds'])
+        future['ds'] = pd.to_datetime(future['ds'])
 
-        # Calculate RMSE
-        rmse = np.sqrt(((forecast_vals['yhat'] - actual_vals) ** 2).mean())
+        #  Merge the two DataFrames on the 'ds' column
+        df_results = forecast[['ds', 'yhat']].merge(future, on='ds', how='left')
 
-        results = pd.concat([forecast[['ds', 'yhat']], future], axis=1)
-        print('Results')
-        print(results)
+        actual_sales =  df_results['y'].values[-len(df_test):]
+        predicted_sales = df_results['yhat'].values[-len(df_test):]
+
+        rmse = np.sqrt(mean_squared_error(actual_sales, predicted_sales))
+
+        df_predictions = df_results[['ds', 'y', 'yhat']].iloc[-len(df_test):].reset_index(drop=True)
+
+        # Dictionary to rename columns
+        rename_dict = {
+                'ds': 'Date',
+                'y': 'Actual_Sales_EUR',
+                'yhat': 'Predicted_Sales_EUR'
+        }
+        prediction_results['RMSE_TEST_SCORE'] = rmse
+
+        # Rename columns
+        df_predictions.rename(columns=rename_dict, inplace=True)
+        df_results.rename(columns=rename_dict, inplace=True)
+
+        fig = create_actual_vs_predicted_plot(df_results, df_full, parameters)
+
+        return df_predictions, prediction_results, fig
+
     else:
-        raise NotImplementedError('Implementation for input model is missing.')
-
-    # forecast = model.predict(future)
-
-    # print(forecast)
-
-    # # Merge the DataFrames on 'full_date' and 'ds'
-    # merged_df = pd.merge(forecast, df_test, left_on='ds', right_on=parameters['date_column'], how='left')
-
-    # print(merged_df)
-
-    # # Use 'Sales_EUR' to fill NaN values in 'y'
-    # merged_df['y'] = merged_df['y'].fillna(merged_df[parameters['target_column']])
-
-    # # Drop the 'Sales_EUR' and 'full_date' columns if no longer needed
-    # merged_df.drop(columns=test_data.columns, inplace=True)
-
-    # actual_sales = merged_df['y'].values[-len(test_data):]
-    # predicted_sales = merged_df['yhat1'].values[-len(test_data):]
-
-    # rmse = np.sqrt(mean_squared_error(actual_sales, predicted_sales))
-
-    prediction_results['rmse_test'] = rmse
-
-    fig = create_actual_vs_predicted_plot(merged_df, forecast, df_full, parameters)
-
-    df_predictions = merged_df[['ds', 'y', 'yhat1']].iloc[-len(test_data):].reset_index(drop=True)
-
-    # Dictionary to rename columns
-    rename_dict = {
-        'ds': 'Date',
-        'y': 'Actual_Sales_EUR',
-        'yhat1': 'Predicted_Sales_EUR'
-    }
-
-    # Rename columns
-    df_predictions.rename(columns=rename_dict, inplace=True)
-
-    return df_predictions, prediction_results, fig
+        raise NotImplementedError('Production Model Type is not implemented yet!')
 
 
