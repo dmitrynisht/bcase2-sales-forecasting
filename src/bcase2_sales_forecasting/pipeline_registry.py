@@ -8,7 +8,7 @@ from bcase2_sales_forecasting.pipelines import (
     p02_ingested as ingested_pipeline,
     p03_data_preprocessing as data_preprocessing_pipeline,
     p04_feature_selection as feature_selection_pipeline,
-    p05_split_train as split_data_pipeline,
+    p05_prepare_model_input_data as prepare_model_input_data_pipeline,
     p06_model_selection as model_selection_pipeline,
     p07_model_train as model_train_pipeline,
     p08_model_predict as model_predict_pipeline,
@@ -30,7 +30,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
     raw_data_ingested = ingested_pipeline.create_pipeline()
     preprocess_data = data_preprocessing_pipeline.create_pipeline()
     feature_selection = feature_selection_pipeline.create_pipeline()
-    split_data = split_data_pipeline.create_pipeline()
+    prepare_model_input_data = prepare_model_input_data_pipeline.create_pipeline()
     model_selection = model_selection_pipeline.create_pipeline()
     model_train = model_train_pipeline.create_pipeline()
     model_predict = model_predict_pipeline.create_pipeline()
@@ -40,7 +40,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
         "raw_data_ingested": raw_data_ingested,
         "preprocess_data": preprocess_data,
         "feature_selection": feature_selection,
-        "split_data":  split_data,
+        "prepare_model_input_data":  prepare_model_input_data,
         "model_selection": model_selection,
         "model_train": model_train,
         "model_predict": model_predict,
