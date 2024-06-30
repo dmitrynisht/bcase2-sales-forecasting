@@ -1,17 +1,22 @@
 import pandas as pd
 import re
 from typing import Any, Dict
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def debug_on_success_(data: pd.DataFrame, dummy_value: int, pipeline_name: str = "", f_verbose: bool = False) -> None:
     
     # Print columns
     if f_verbose:
-        print(data.dtypes)
+        logger.info(f"major {pipeline_name} dataset:\n{data.dtypes}")
 
     # dummy_value is for checking pipelines sequence
     dummy_value.append(dummy_value[-1] + 1) 
-    print(f"pipeline {pipeline_name} succeed !; f_verbose={f_verbose};", dummy_value)
+    # print(f"pipeline {pipeline_name} succeed !; f_verbose={f_verbose};", dummy_value)
+    logger.info(f"pipeline {pipeline_name.upper()} succeed !\nf_verbose={f_verbose};\ndummy sequence: {dummy_value}")
 
     return
 
@@ -68,7 +73,7 @@ def sales_columns_naming_(data: pd.DataFrame) -> pd.DataFrame:
 def full_date_col_(data: pd.DataFrame) -> pd.DataFrame:
     
     # Format data
-    data['Full_Date'] = pd.to_datetime(data['Full_Date'], format='%d.%m.%Y')#.dt.strftime('%d-%m-%Y')
+    data['Full_Date'] = pd.to_datetime(data['Full_Date'], format='%d.%m.%Y', dayfirst=True)#.dt.strftime('%d-%m-%Y')
     
     return data
 
