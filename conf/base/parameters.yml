@@ -14,6 +14,7 @@ validation_fraction: 0.8
 date_column: 'full_date'
 target_column: 'sales_eur'
 target_product: '#1'
+
 num_feature_cols: 0
 
 fit_params_Prophet: { 
@@ -26,3 +27,5 @@ fit_params_NeuralProphet: {
         'progress': 'print',
         'epochs': 20
     }
+    
+drift_factor: 0.1
