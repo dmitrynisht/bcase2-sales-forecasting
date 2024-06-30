@@ -59,24 +59,72 @@ def model_predict(model,
                             'ds': X_full[parameters['date_column']],
                             'y': y_full[parameters['target_column']]
                             })
+    
+    print(test_data)
+    
+    df_test = pd.DataFrame({
+                            'ds': test_data[parameters['date_column']],
+                            'y': test_data[parameters['target_column']]
+                            })
+    
 
+    print('MODEL NAME: ', model.__class__.__name__)
 
-    future = model.make_future_dataframe(df_full, n_historic_predictions=True, periods=len(test_data))
-    forecast = model.predict(future)
+    if model.__class__.__name__ == 'NeuralProphet':
+        future = model.make_future_dataframe(df_full, n_historic_predictions=True, periods=len(test_data))
+        forecast = model.predict(future)
 
-    # Merge the DataFrames on 'full_date' and 'ds'
-    merged_df = pd.merge(forecast, test_data, left_on='ds', right_on=parameters['date_column'], how='left')
+        # Merge the DataFrames on 'full_date' and 'ds'
+        merged_df = pd.merge(forecast, test_data, left_on='ds', right_on=parameters['date_column'], how='left')
 
-    # Use 'Sales_EUR' to fill NaN values in 'y'
-    merged_df['y'] = merged_df['y'].fillna(merged_df[parameters['target_column']])
+        # Use 'Sales_EUR' to fill NaN values in 'y'
+        merged_df['y'] = merged_df['y'].fillna(merged_df[parameters['target_column']])
 
-    # Drop the 'Sales_EUR' and 'full_date' columns if no longer needed
-    merged_df.drop(columns=test_data.columns, inplace=True)
+        # Drop the 'Sales_EUR' and 'full_date' columns if no longer needed
+        merged_df.drop(columns=test_data.columns, inplace=True)
 
-    actual_sales = merged_df['y'].values[-len(test_data):]
-    predicted_sales = merged_df['yhat1'].values[-len(test_data):]
+        actual_sales = merged_df['y'].values[-len(test_data):]
+        predicted_sales = merged_df['yhat1'].values[-len(test_data):]
 
-    rmse = np.sqrt(mean_squared_error(actual_sales, predicted_sales))
+        rmse = np.sqrt(mean_squared_error(actual_sales, predicted_sales))
+
+    elif model.__class__.__name__ == 'Prophet':
+        future = pd.concat([df_full, df_test], axis=0).reset_index(drop=True)
+        forecast = model.predict(future)
+
+        # Ensure forecasted and actual values are properly aligned
+        forecast_vals = forecast[['yhat']].iloc[-len(df_test):].reset_index(drop=True)
+        actual_vals = df_test['y'].reset_index(drop=True)
+
+        # Calculate RMSE
+        rmse = np.sqrt(((forecast_vals['yhat'] - actual_vals) ** 2).mean())
+
+        results = pd.concat([forecast[['ds', 'yhat']], future], axis=1)
+        print('Results')
+        print(results)
+    else:
+        raise NotImplementedError('Implementation for input model is missing.')
+
+    # forecast = model.predict(future)
+
+    # print(forecast)
+
+    # # Merge the DataFrames on 'full_date' and 'ds'
+    # merged_df = pd.merge(forecast, df_test, left_on='ds', right_on=parameters['date_column'], how='left')
+
+    # print(merged_df)
+
+    # # Use 'Sales_EUR' to fill NaN values in 'y'
+    # merged_df['y'] = merged_df['y'].fillna(merged_df[parameters['target_column']])
+
+    # # Drop the 'Sales_EUR' and 'full_date' columns if no longer needed
+    # merged_df.drop(columns=test_data.columns, inplace=True)
+
+    # actual_sales = merged_df['y'].values[-len(test_data):]
+    # predicted_sales = merged_df['yhat1'].values[-len(test_data):]
+
+    # rmse = np.sqrt(mean_squared_error(actual_sales, predicted_sales))
+
     prediction_results['rmse_test'] = rmse
 
     fig = create_actual_vs_predicted_plot(merged_df, forecast, df_full, parameters)
