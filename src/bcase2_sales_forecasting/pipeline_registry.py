@@ -50,5 +50,7 @@ def register_pipelines() -> Dict[str, Pipeline]:
         "model_predict": model_predict,
         "data_drift":data_drift,
 
-        "long_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data + feature_selection + split_data + model_selection + model_train +model_predict,
+        "training_pipe": prepare_model_input_data + model_selection + model_train + model_predict,
+        "long_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data + feature_selection,
+        "complete_pipe": raw_data_unit_tests + raw_data_ingested + preprocess_data + feature_selection + prepare_model_input_data + model_selection + model_train + model_predict,
     }
