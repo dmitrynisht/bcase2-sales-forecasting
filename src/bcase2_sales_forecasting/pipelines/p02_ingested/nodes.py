@@ -551,7 +551,7 @@ def ingest_test_data(
     test_data = data.copy()
 
     # Rename the columns to have a consistent format
-    test_data.columns = ['Month Year', 'GCK', 'Sales_EUR']
+    test_data.columns = ['Month Year', 'GCK', 'sales_eur']
 
     # Filter for target product
     test_data = test_data[test_data.GCK == parameters['target_product']]
@@ -559,10 +559,10 @@ def ingest_test_data(
     # Convert 'Month Year' to datetime format
     test_data['full_date'] = pd.to_datetime(test_data['Month Year'], format='%b %y')
     
-    test_data['Sales_EUR'] = test_data['Sales_EUR'].astype(float)
+    test_data['sales_eur'] = test_data['sales_eur'].astype(float)
     
     # Keep only the necessary columns
-    test_data = test_data[['full_date', 'Sales_EUR']]
+    test_data = test_data[['full_date', 'sales_eur']]
     
     # Convert 'full_date' to the desired format 'yyyy-mm-dd'
     test_data['full_date'] = test_data['full_date'].dt.strftime('%Y-%m-%d')
