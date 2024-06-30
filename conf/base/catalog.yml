@@ -190,3 +190,7 @@ production_rmse:
 production_evalution_plot:
   type: matplotlib.MatplotlibWriter
   filepath: data/08_reporting/production_evaluation_plot.png
+
+feature_importance_plot:
+  type: matplotlib.MatplotlibWriter
+  filepath: data/08_reporting/feature_importance_plot.png
